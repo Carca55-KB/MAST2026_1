@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -8,86 +9,118 @@
     <link rel="icon" type="image/png" href="favicon.png">
     
     <style>
-        /* Reset e Stili Generali */
+        /* Reset & Base minimalista stile Pilot Site */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #15151e;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0b0b0c;
             color: #ffffff;
-            line-height: 1.6;
-            padding: 20px;
+            line-height: 1.7;
+            padding: 0;
+            overflow-x: hidden;
         }
+
+        /* Header editoriale asimmetrico */
         header {
-            text-align: center;
-            padding: 40px 20px;
-            background: linear-gradient(135deg, #1f1f2e, #111118);
-            border-bottom: 4px solid #e10600;
-            border-radius: 8px 8px 0 0;
-            margin-bottom: 20px;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 80px 40px 40px 40px;
+            display: flex;
+            flex-direction: column;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        header .site-tag {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: #8c8c92;
+            margin-bottom: 15px;
         }
         header h1 {
-            font-size: 2.5rem;
-            color: #e10600;
+            font-size: 4rem;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
+            letter-spacing: -2px;
+            line-height: 0.95;
+            margin-bottom: 20px;
+        }
+        header h1 span {
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.6);
         }
         header p {
-            color: #a0a0a5;
+            color: #8c8c92;
             font-size: 1.1rem;
-        }
-        .main-container {
-            max-width: 1200px;
-            margin: 0 auto;
+            max-width: 500px;
         }
 
-        /* Sistema di Schede (Tabs) in puro CSS */
+        /* Contenitore Principale */
+        .main-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        /* Sistema Navigation Tabs Premium */
         .tabs-wrapper {
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column;
         }
         .tab-radio {
-            display: none; /* Nasconde i radio button reali */
+            display: none;
+        }
+        .nav-tabs {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 60px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 20px;
         }
         .tab-label {
-            padding: 15px 30px;
-            font-weight: bold;
+            font-size: 1.1rem;
+            font-weight: 600;
             text-transform: uppercase;
+            letter-spacing: 2px;
             cursor: pointer;
-            background-color: #1f1f2e;
-            border: 1px solid #2d2d3f;
-            border-bottom: none;
-            border-radius: 8px 8px 0 0;
-            margin-right: 5px;
-            transition: all 0.3s ease;
-            color: #a0a0a5;
+            color: #4a4a4f;
+            transition: color 0.3s ease, transform 0.3s ease;
+            position: relative;
         }
         .tab-label:hover {
-            background-color: #2d2d3f;
-            color: #fff;
+            color: #ffffff;
         }
-        .tab-content {
+        /* Linea sotto animata per la scheda attiva */
+        .tab-label::after {
+            content: '';
+            position: absolute;
+            bottom: -21px;
+            left: 0;
             width: 100%;
-            order: 99; /* Spinge il contenuto sotto le etichette */
-            background-color: #1f1f2e;
-            padding: 30px;
-            border-radius: 0 8px 8px 8px;
-            border: 1px solid #2d2d3f;
-            display: none; /* Nasconde il contenuto di default */
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            height: 2px;
+            background-color: #ffffff; /* Stile pulito bianco/nero alla Leclerc/Norris */
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
         }
 
-        /* Logica di attivazione delle schede */
-        #tab1:checked ~ label[for="tab1"],
-        #tab2:checked ~ label[for="tab2"],
-        #tab3:checked ~ label[for="tab3"] {
-            background-color: #e10600;
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        /* Logica di attivazione */
+        #tab1:checked ~ .nav-tabs label[for="tab1"],
+        #tab2:checked ~ .nav-tabs label[for="tab2"],
+        #tab3:checked ~ .nav-tabs label[for="tab3"] {
             color: #ffffff;
-            border-color: #e10600;
+        }
+        #tab1:checked ~ .nav-tabs label[for="tab1"]::after,
+        #tab2:checked ~ .nav-tabs label[for="tab2"]::after,
+        #tab3:checked ~ .nav-tabs label[for="tab3"]::after {
+            transform: scaleX(1);
         }
         #tab1:checked ~ #content1,
         #tab2:checked ~ #content2,
@@ -95,55 +128,74 @@
             display: block;
         }
 
-        /* Griglia dei Componenti */
+        /* Layout del Contenuto delle Schede (Stile Magazine) */
         .intro-section {
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #2d2d3f;
+            margin-bottom: 50px;
         }
         .intro-section h2 {
-            color: #e10600;
-            margin-bottom: 10px;
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            margin-bottom: 15px;
         }
+        .intro-section p {
+            color: #8c8c92;
+            font-size: 1.2rem;
+            max-width: 700px;
+        }
+
+        /* Griglia Componenti Elegante */
         .components-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(2, 1fr); /* Due grandi colonne asimmetriche */
+            gap: 40px;
         }
         .component-card {
-            background-color: #15151e;
-            padding: 20px;
-            border-radius: 6px;
-            border-left: 4px solid #e10600;
-            transition: transform 0.2s;
+            background-color: #121214;
+            padding: 40px;
+            border-radius: 0px; /* Angoli vivi per un look più artistico e professionale */
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .component-card:hover {
-            transform: translateY(-5px);
+            background-color: #1a1a1e;
+            border-color: rgba(255, 255, 255, 0.1);
         }
         .component-card h3 {
-            color: #ffffff;
-            margin-bottom: 10px;
-            font-size: 1.2rem;
-            border-bottom: 1px solid #2d2d3f;
-            padding-bottom: 5px;
+            font-size: 1.4rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        /* Numero identificativo per dare un look ingegneristico/archivio */
+        .component-card h3::before {
+            content: '//';
+            color: #e10600; /* Unico tocco di rosso F1 minimalista */
+            margin-right: 10px;
+            font-size: 1rem;
         }
         .component-card p {
             color: #a0a0a5;
             font-size: 0.95rem;
+            line-height: 1.6;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .tab-label {
-                width: 100%;
-                margin-right: 0;
-                margin-bottom: 5px;
-                border-radius: 4px;
-                text-align: center;
-            }
-            .tab-content {
-                border-radius: 4px;
-            }
+        /* Animazione di apparizione */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive per schermi piccoli */
+        @media (max-width: 900px) {
+            header h1 { font-size: 2.8rem; }
+            .nav-tabs { gap: 20px; overflow-x: auto; padding-bottom: 15px; }
+            .tab-label { font-size: 0.9rem; }
+            .components-grid { grid-template-columns: 1fr; gap: 20px; }
+            .component-card { padding: 30px; }
         }
     </style>
 </head>
@@ -160,96 +212,84 @@
         <div class="tabs-wrapper">
             
             <input type="radio" name="f1-tabs" id="tab1" class="tab-radio" checked>
-            <label for="tab1" class="tab-label">Carrozzeria & Aero</label>
+            <input type="radio" name="f1-tabs" id="tab2" class="tab-radio">
+            <input type="radio" name="f1-tabs" id="tab3" class="tab-radio">
+
+            <div class="nav-tabs">
+                <label for="tab1" class="tab-label">01 // Aero & Chassis</label>
+                <label for="tab2" class="tab-label">02 // Power Unit</label>
+                <label for="tab3" class="tab-label">03 // Tyres</label>
+            </div>
+            
             <div id="content1" class="tab-content">
                 <div class="intro-section">
                     <h2>La Carrozzeria e il Telaio</h2>
-                    <p>La veste esterna di una F1 non serve solo a coprire i pezzi, ma è scolpita dall'aria per generare carico aerodinamico e ridurre la resistenza l'avanzamento.</p>
+                    <p>Scolpiti dall'aria. Ogni linea della scocca è pensata per gestire i flussi aerodinamici e massimizzare la deportanza strutturale.</p>
                 </div>
                 <div class="components-grid">
                     <div class="component-card">
-                        <h3>Monoscocca (Telaio)</h3>
-                        <p>La cellula di sicurezza del pilota. Realizzata in fibra di carbonio e kevlar, è incredibilmente leggera ma capace di resistere a impatti devastanti.</p>
+                        <h3>Monoscocca</h3>
+                        <p>Il nucleo in fibra di carbonio. Una cellula di sopravvivenza ultra-leggera progettata per resistere a carichi d'impatto estremi.</p>
                     </div>
                     <div class="component-card">
                         <h3>Ala Anteriore</h3>
-                        <p>Il primo punto di contatto con l'aria. Indirizza i flussi verso il resto della vettura e genera il carico necessario per l'avantreno.</p>
+                        <p>Il deviatore di flusso primario. Gestisce la direzione dell'aria indirizzandola verso il fondo e le pance della vettura.</p>
                     </div>
                     <div class="component-card">
-                        <h3>Pance Laterali (Sidepods)</h3>
-                        <p>Alloggiano i radiatori per il raffreddamento e sagomano il flusso d'aria diretto verso il retrotreno (effetto Downwash Coanda).</p>
+                        <h3>Sidepods</h3>
+                        <p>Canali geometrici laterali che ospitano i pacchi radianti, modellati per alimentare l'effetto downwash verso il retrotreno.</p>
                     </div>
                     <div class="component-card">
-                        <h3>Fondo Piatto e Venturi</h3>
-                        <p>Sfrutta l'effetto suolo. I canali inferiori accelerano l'aria sotto la vettura creando una depressione che letteralmente "incolla" l'auto all'asfalto.</p>
-                    </div>
-                    <div class="component-card">
-                        <h3>Ala Posteriore & DRS</h3>
-                        <p>Bilancia il carico posteriore. Include il flap mobile (DRS) che si apre in rettilineo per ridurre la resistenza all'aria e facilitare i sorpassi.</p>
+                        <h3>Fondo Venturi</h3>
+                        <p>Il segreto dell'effetto suolo. Canali inferiori che sigillano l'auto all'asfalto generando una depressione aerodinamica costante.</p>
                     </div>
                 </div>
             </div>
 
-            <input type="radio" name="f1-tabs" id="tab2" class="tab-radio">
-            <label for="tab2" class="tab-label">Power Unit</label>
             <div id="content2" class="tab-content">
                 <div class="intro-section">
                     <h2>La Power Unit Ibrida</h2>
-                    <p>Non chiamatelo solo "motore". È un sistema di propulsione integrato che combina un motore termico a sistemi di recupero dell'energia altamente efficienti.</p>
+                    <p>L'apice dell'efficienza termica. Un ecosistema ingegneristico che converte calore ed energia cinetica in pura spinta motrice.</p>
                 </div>
                 <div class="components-grid">
                     <div class="component-card">
-                        <h3>ICE (Motore Termico)</h3>
-                        <p>Un motore V6 turbo da 1.6 litri. Nonostante la cilindrata ridotta, sprigiona oltre 700 cavalli grazie a regimi di rotazione elevati e combustione avanzata.</p>
+                        <h3>ICE V6 Turbo</h3>
+                        <p>Un cuore termico da 1.6 litri a iniezione diretta capace di esprimere regimi di rotazione fino a 15.000 giri al minuto.</p>
                     </div>
                     <div class="component-card">
-                        <h3>Turbocompressore</h3>
-                        <p>Sfrutta i gas di scarico per comprimere l'aria in ingresso nel motore, aumentando drasticamente la potenza e l'efficienza complessiva.</p>
+                        <h3>MGU-K</h3>
+                        <p>Il generatore cinetico ancorato all'albero motore. Recupera l'energia in frenata sprigionando 120kW di potenza elettrica aggiuntiva.</p>
                     </div>
                     <div class="component-card">
-                        <h3>MGU-K (Motor Generator Unit - Kinetic)</h3>
-                        <p>Recupera l'energia cinetica dissipata durante le frenate e la trasforma in elettricità. In fase di accelerazione restituisce circa 160 cavalli aggiuntivi.</p>
+                        <h3>MGU-H</h3>
+                        <p>L'unità termica accoppiata alla turbina. Elimina il lag del turbo immagazzinando l'energia in eccesso dai gas di scarico.</p>
                     </div>
                     <div class="component-card">
-                        <h3>MGU-H (Motor Generator Unit - Heat)</h3>
-                        <p>Collegato direttamente al turbo, converte l'energia termica dei gas di scarico in energia elettrica. Elimina anche il fastidioso ritardo del turbo (turbo-lag).</p>
-                    </div>
-                    <div class="component-card">
-                        <h3>Energy Store (Batteria)</h3>
-                        <p>Il cuore elettrico della PU. Immagazzina l'energia recuperata da MGU-K e MGU-H per cederla nei momenti di massimo sforzo in pista.</p>
+                        <h3>Energy Store</h3>
+                        <p>Il pacco batterie agli ioni di litio, schermato termicamente, fulcro della distribuzione energetica della monoposto.</p>
                     </div>
                 </div>
             </div>
 
-            <input type="radio" name="f1-tabs" id="tab3" class="tab-radio">
-            <label for="tab3" class="tab-label">Gomme & Mescole</label>
             <div id="content3" class="tab-content">
                 <div class="intro-section">
-                    <h2>Gli Pneumatici</h2>
-                    <p>L'unico punto di contatto tra la monoposto e la pista. La gestione delle temperature e del degrado delle gomme decide le strategie di ogni Gran Premio.</p>
+                    <h2>Gomme & Mescole</h2>
+                    <p>L'interfaccia chimica e meccanica con la pista. Comprendere la finestra d'utilizzo degli pneumatici determina il destino della corsa.</p>
                 </div>
                 <div class="components-grid">
                     <div class="component-card">
-                        <h3>Mescola Morbida (Soft - Rossa)</h3>
-                        <p>Garantisce il massimo grip meccanico e la massima velocità, ma si deteriora molto rapidamente. Ideale per le qualifiche.</p>
+                        <h3>Mescole Slick</h3>
+                        <p>Morbida (Soft), Media (Medium) e Dura (Hard). Tre finestre di lavoro differenti per bilanciare aderenza pura e strategie sulla distanza.</p>
                     </div>
                     <div class="component-card">
-                        <h3>Mescola Media (Medium - Gialla)</h3>
-                        <p>Il perfetto compromesso tra performance e durata. È la gomma più versatile utilizzata durante le strategie di gara.</p>
-                    </div>
-                    <div class="component-card">
-                        <h3>Mescola Dura (Hard - Bianca)</h3>
-                        <p>Impiega più tempo a entrare nella corretta finestra di temperatura, ma garantisce una grandissima longevità per gli stint di gara più lunghi.</p>
-                    </div>
-                    <div class="component-card">
-                        <h3>Intermedie (Green) e Full Wet (Blue)</h3>
-                        <p>Pneumatici intagliati per drenare l'acqua in caso di pioggia. Le Full Wet possono evacuare fino a 85 litri d'acqua al secondo a piena velocità.</p>
-                    
+                        <h3>Intermedie & Wet</h3>
+                        <p>Disegni del battistrada intagliati per rompere il velo dell'acqua superficiale, contrastando l'effetto aquaplaning a 300 km/h.</p>
                     </div>
                 </div>
             </div>
 
         </div>
     </div>
+
 </body>
 </html>
