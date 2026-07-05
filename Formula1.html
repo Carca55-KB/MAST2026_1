@@ -1,0 +1,257 @@
+Ecco una struttura completa in HTML e CSS (incluso nel tag <style>) per il tuo sito sulla Formula 1.
+
+Per renderlo funzionante fin da subito senza dover usare JavaScript, ho utilizzato una tecnica CSS basata sui pulsanti radio per gestire il cambio delle 3 schede (Carrozzeria, Power Unit e Gomme). Il design è moderno, scuro (in perfetto stile motorsport) e con il tipico rosso F1 come colore d'accento.
+
+Puoi copiare questo codice e salvarlo in un file chiamato index.html.
+
+HTML
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 Tech Lab - Analisi Monoposto</title>
+    <style>
+        /* Reset e Stili Generali */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #15151e;
+            color: #ffffff;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #1f1f2e, #111118);
+            border-bottom: 4px solid #e10600;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 20px;
+        }
+        header h1 {
+            font-size: 2.5rem;
+            color: #e10600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        header p {
+            color: #a0a0a5;
+            font-size: 1.1rem;
+        }
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Sistema di Schede (Tabs) in puro CSS */
+        .tabs-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .tab-radio {
+            display: none; /* Nasconde i radio button reali */
+        }
+        .tab-label {
+            padding: 15px 30px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            background-color: #1f1f2e;
+            border: 1px solid #2d2d3f;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            margin-right: 5px;
+            transition: all 0.3s ease;
+            color: #a0a0a5;
+        }
+        .tab-label:hover {
+            background-color: #2d2d3f;
+            color: #fff;
+        }
+        .tab-content {
+            width: 100%;
+            order: 99; /* Spinge il contenuto sotto le etichette */
+            background-color: #1f1f2e;
+            padding: 30px;
+            border-radius: 0 8px 8px 8px;
+            border: 1px solid #2d2d3f;
+            display: none; /* Nasconde il contenuto di default */
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Logica di attivazione delle schede */
+        #tab1:checked ~ label[for="tab1"],
+        #tab2:checked ~ label[for="tab2"],
+        #tab3:checked ~ label[for="tab3"] {
+            background-color: #e10600;
+            color: #ffffff;
+            border-color: #e10600;
+        }
+        #tab1:checked ~ #content1,
+        #tab2:checked ~ #content2,
+        #tab3:checked ~ #content3 {
+            display: block;
+        }
+
+        /* Griglia dei Componenti */
+        .intro-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #2d2d3f;
+        }
+        .intro-section h2 {
+            color: #e10600;
+            margin-bottom: 10px;
+        }
+        .components-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .component-card {
+            background-color: #15151e;
+            padding: 20px;
+            border-radius: 6px;
+            border-left: 4px solid #e10600;
+            transition: transform 0.2s;
+        }
+        .component-card:hover {
+            transform: translateY(-5px);
+        }
+        .component-card h3 {
+            color: #ffffff;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            border-bottom: 1px solid #2d2d3f;
+            padding-bottom: 5px;
+        }
+        .component-card p {
+            color: #a0a0a5;
+            font-size: 0.95rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .tab-label {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 5px;
+                border-radius: 4px;
+                text-align: center;
+            }
+            .tab-content {
+                border-radius: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>F1 Tech Lab</h1>
+        <p>Dall'intera monoposto ai singoli segreti ingegneristici</p>
+    </header>
+
+    <div class="main-container">
+        <div class="tabs-wrapper">
+            
+            <input type="radio" name="f1-tabs" id="tab1" class="tab-radio" checked>
+            <label for="tab1" class="tab-label">Carrozzeria & Aero</label>
+            <div id="content1" class="tab-content">
+                <div class="intro-section">
+                    <h2>La Carrozzeria e il Telaio</h2>
+                    <p>La veste esterna di una F1 non serve solo a coprire i pezzi, ma è scolpita dall'aria per generare carico aerodinamico e ridurre la resistenza l'avanzamento.</p>
+                </div>
+                <div class="components-grid">
+                    <div class="component-card">
+                        <h3>Monoscocca (Telaio)</h3>
+                        <p>La cellula di sicurezza del pilota. Realizzata in fibra di carbonio e kevlar, è incredibilmente leggera ma capace di resistere a impatti devastanti.</p>
+                    </div>
+                    <div class="component-card">
+                        <h3>Ala Anteriore</h3>
+                        <p>Il primo punto di contatto con l'aria. Indirizza i flussi verso il resto della vettura e genera il carico necessario per l'avantreno.</p>
+                    </div>
+                    <div class="component-card">
+                        <h3>Pance Laterali (Sidepods)</h3>
+                        <p>Alloggiano i radiatori per il raffreddamento e sagomano il flusso d'aria diretto verso il retrotreno (effetto Downwash Coanda).</p>
+                    </div>
+                    <div class="component-card">
+                        <h3>Fondo Piatto e Venturi</h3>
+                        <p>Sfrutta l'effetto suolo. I canali inferiori accelerano l'aria sotto la vettura creando una depressione che letteralmente "incolla" l'auto all'asfalto.</p>
+                    </div>
+                    <div class="component-card">
+                        <h3>Ala Posteriore & DRS</h3>
+                        <p>Bilancia il carico posteriore. Include il flap mobile (DRS) che si apre in rettilineo per ridurre la resistenza all'aria e facilitare i sorpassi.</p>
+                    </div>
+                </div>
+            </div>
+
+            <input type="radio" name="f1-tabs" id="tab2" class="tab-radio">
+            <label for="tab2" class="tab-label">Power Unit</label>
+            <div id="content2" class="tab-content">
+                <div class="intro-section">
+                    <h2>La Power Unit Ibrida</h2>
+                    <p>Non chiamatelo solo "motore". È un sistema di propulsione integrato che combina un motore termico a sistemi di recupero dell'energia altamente efficienti.</p>
+                </div>
+                <div class="components-grid">
+                    <div class="component-card">
+                        <h3>ICE (Motore Termico)</h3>
+                        <p>Un motore V6 turbo da 1.6 litri. Nonostante la cilindrata ridotta, sprigiona oltre 700 cavalli grazie a regimi di rotazione elevati e combustione avanzata.</p>
+                    </div>
+                    <div class="component-card">
+                        <h3>Turbocompressore</h3>
+                        <p>Sfrutta i gas di scarico per comprimere l'aria in ingresso nel motore, aumentando drasticamente la potenza e l'efficienza complessiva.</p>
+                    </div>
+                    <div class="component-card">
+                        <h3>MGU-K (Motor Generator Unit - Kinetic)</h3>
+                        <p>Recupera l'energia cinetica dissipata durante le frenate e la trasforma in elettricità. In fase di accelerazione restituisce circa 160 cavalli aggiuntivi.</p>
+                    </div>
+                    <div class="component-card">
+                        <h3>MGU-H (Motor Generator Unit - Heat)</h3>
+                        <p>Collegato direttamente al turbo, converte l'energia termica dei gas di scarico in energia elettrica. Elimina anche il fastidioso ritardo del turbo (turbo-lag).</p>
+                    </div>
+                    <div class="component-card">
+                        <h3>Energy Store (Batteria)</h3>
+                        <p>Il cuore elettrico della PU. Immagazzina l'energia recuperata da MGU-K e MGU-H per cederla nei momenti di massimo sforzo in pista.</p>
+                    </div>
+                </div>
+            </div>
+
+            <input type="radio" name="f1-tabs" id="tab3" class="tab-radio">
+            <label for="tab3" class="tab-label">Gomme & Mescole</label>
+            <div id="content3" class="tab-content">
+                <div class="intro-section">
+                    <h2>Gli Pneumatici</h2>
+                    <p>L'unico punto di contatto tra la monoposto e la pista. La gestione delle temperature e del degrado delle gomme decide le strategie di ogni Gran Premio.</p>
+                </div>
+                <div class="components-grid">
+                    <div class="component-card">
+                        <h3>Mescola Morbida (Soft - Rossa)</h3>
+                        <p>Garantisce il massimo grip meccanico e la massima velocità, ma si deteriora molto rapidamente. Ideale per le qualifiche.</p>
+                    </div>
+                    <div class="component-card">
+                        <h3>Mescola Media (Medium - Gialla)</h3>
+                        <p>Il perfetto compromesso tra performance e durata. È la gomma più versatile utilizzata durante le strategie di gara.</p>
+                    </div>
+                    <div class="component-card">
+                        <h3>Mescola Dura (Hard - Bianca)</h3>
+                        <p>Impiega più tempo a entrare nella corretta finestra di temperatura, ma garantisce una grandissima longevità per gli stint di gara più lunghi.</p>
+                    </div>
+                    <div class="component-card">
+                        <h3>Intermedie (Green) e Full Wet (Blue)</h3>
+                        <p>Pneumatici intagliati per drenare l'acqua in caso di pioggia. Le Full Wet possono evacuare fino a 85 litri d'acqua al secondo a piena velocità.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>
