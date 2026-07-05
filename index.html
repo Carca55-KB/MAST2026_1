@@ -1,0 +1,2028 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 Analisi</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --rosso: #dc0000;
+            --rosso-dark: #b30000;
+            --azzurro: #00a3e0;
+            --bianco: #ffffff;
+            --bg-dark: #0b0b0c;
+            --bg-card: #121214;
+            --bg-card-hover: #1a1a1e;
+            --text-primary: #ffffff;
+            --text-secondary: #8c8c92;
+            --text-muted: #4a4a4f;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg-dark);
+            background: linear-gradient(135deg, #0b0b0c 0%, #1a0505 25%, #0b0b0c 50%, #0d0000 75%, #0b0b0c 100%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(220, 0, 0, 0.15) 0%, transparent 40%),
+                radial-gradient(ellipse at 80% 80%, rgba(220, 0, 0, 0.1) 0%, transparent 40%),
+                radial-gradient(ellipse at 50% 50%, rgba(139, 0, 0, 0.08) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .cursor-follower {
+            width: 20px;
+            height: 20px;
+            background: var(--rosso);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transition: transform 0.1s ease;
+            opacity: 0;
+        }
+
+        .cursor-follower.active {
+            opacity: 1;
+        }
+
+        .component-tooltip {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, rgba(18, 18, 20, 0.98) 0%, rgba(26, 5, 5, 0.95) 100%);
+            border: 1px solid rgba(220, 0, 0, 0.3);
+            border-radius: 0;
+            padding: 25px 30px;
+            max-width: 350px;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .component-tooltip.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .component-buttons {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 100;
+            max-height: calc(100% - 100px);
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .component-btn {
+            background: rgba(18, 18, 20, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            padding: 8px 14px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap;
+        }
+
+        .component-btn:hover {
+            background: rgba(220, 0, 0, 0.2);
+            border-color: var(--rosso);
+            color: var(--text-primary);
+            transform: translateX(5px);
+        }
+
+        .component-btn.active {
+            background: rgba(220, 0, 0, 0.3);
+            border-color: var(--rosso);
+            color: var(--rosso);
+        }
+
+        .component-btn-category {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .car-label {
+            background: rgba(18, 18, 20, 0.85);
+            border: 1px solid var(--rosso);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            pointer-events: auto;
+            white-space: nowrap;
+        }
+
+        .car-label:hover {
+            background: rgba(220, 0, 0, 0.3);
+            transform: scale(1.05);
+        }
+
+        .component-tooltip .tooltip-tag {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--rosso);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .component-tooltip .tooltip-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .component-tooltip .tooltip-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+
+        .component-tooltip .tooltip-specs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .component-tooltip .spec-item {
+            background: rgba(220, 0, 0, 0.1);
+            padding: 8px 12px;
+            font-size: 0.75rem;
+            border-left: 2px solid var(--rosso);
+        }
+
+        .component-tooltip .spec-item span {
+            color: var(--text-muted);
+            display: block;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 3px;
+        }
+
+        .component-tooltip .close-tooltip {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .component-tooltip .close-tooltip:hover {
+            color: var(--rosso);
+        }
+
+        .model-instructions {
+            position: absolute;
+            bottom: 25px;
+            left: 25px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 12px 24px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            pointer-events: none;
+            z-index: 10;
+            letter-spacing: 1px;
+        }
+
+        .model-instructions span {
+            color: var(--rosso);
+            font-weight: 600;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(11, 11, 12, 0.95), transparent);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .logo span {
+            color: var(--rosso);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--rosso);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 120px 40px 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse at 70% 30%, rgba(220, 0, 0, 0.2) 0%, transparent 50%),
+                radial-gradient(ellipse at 30% 70%, rgba(0, 163, 224, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 90% 90%, rgba(139, 0, 0, 0.15) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 80%;
+            height: 150%;
+            background: radial-gradient(ellipse, rgba(220, 0, 0, 0.1) 0%, transparent 60%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .hero-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-tag {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            color: var(--rosso);
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 10vw, 8rem);
+            font-weight: 900;
+            line-height: 0.9;
+            text-transform: uppercase;
+            letter-spacing: -4px;
+            margin-bottom: 40px;
+        }
+
+        .hero-title .outline {
+            color: transparent;
+            -webkit-text-stroke: 1.5px var(--text-primary);
+            display: block;
+        }
+
+        .hero-title .highlight {
+            color: var(--rosso);
+            display: block;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin-bottom: 50px;
+            line-height: 1.8;
+        }
+
+        .hero-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            background: var(--rosso);
+            color: var(--bianco);
+            padding: 18px 40px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-cta:hover {
+            transform: translateX(10px);
+            box-shadow: 0 0 40px rgba(220, 0, 0, 0.4);
+        }
+
+        .hero-cta svg {
+            transition: transform 0.3s ease;
+        }
+
+        .hero-cta:hover svg {
+            transform: translateX(5px);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .scroll-line {
+            width: 1px;
+            height: 60px;
+            background: linear-gradient(to bottom, var(--rosso), var(--azzurro), transparent);
+            animation: scrollPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.3; height: 60px; }
+            50% { opacity: 1; height: 80px; }
+        }
+
+        .section {
+            padding: 120px 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            margin-bottom: 80px;
+        }
+
+        .section-tag {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--rosso);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .section-title {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+            line-height: 1.1;
+        }
+
+        .section-title span {
+            color: var(--text-muted);
+        }
+
+        .tabs-container {
+            display: flex;
+            gap: 80px;
+        }
+
+        .tabs-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            min-width: 300px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 25px 0;
+            text-align: left;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-btn::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--rosso);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .tab-btn.active::before {
+            transform: scaleY(1);
+        }
+
+        .tab-btn.active {
+            padding-left: 30px;
+        }
+
+        .tab-btn-number {
+            font-size: 0.7rem;
+            color: var(--azzurro);
+            font-weight: 600;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .tab-btn-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            transition: color 0.3s ease;
+        }
+
+        .tab-btn.active .tab-btn-title {
+            color: var(--text-primary);
+        }
+
+        .tab-btn:hover .tab-btn-title {
+            color: var(--text-primary);
+        }
+
+        .tabs-content {
+            flex: 1;
+        }
+
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-intro {
+            margin-bottom: 50px;
+        }
+
+        .tab-intro h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+        }
+
+        .tab-intro p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            line-height: 1.8;
+        }
+
+        .components-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+
+        .component-card {
+            background: linear-gradient(145deg, rgba(18, 18, 20, 0.9) 0%, rgba(26, 5, 5, 0.8) 100%);
+            padding: 35px;
+            border: 1px solid rgba(220, 0, 0, 0.1);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .component-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(220, 0, 0, 0.3), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .component-card:hover::after {
+            opacity: 1;
+        }
+
+        .component-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(to right, var(--rosso), var(--azzurro));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .component-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .component-card:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(220, 0, 0, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .component-number {
+            font-size: 0.7rem;
+            color: var(--rosso);
+            font-weight: 600;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+        }
+
+        .component-card h4 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .component-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .model-section {
+            padding: 120px 40px;
+            background: linear-gradient(to bottom, transparent, rgba(220, 0, 0, 0.02), rgba(0, 163, 224, 0.02), transparent);
+        }
+
+        .model-section-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .model-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 50px;
+        }
+
+        .model-title {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+        }
+
+        .model-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            max-width: 400px;
+        }
+
+        .model-container {
+            width: 100%;
+            height: 550px;
+            background: linear-gradient(135deg, rgba(18, 18, 20, 0.95) 0%, rgba(26, 5, 5, 0.9) 50%, rgba(18, 18, 20, 0.95) 100%);
+            border: 1px solid rgba(220, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .model-container::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 30% 50%, rgba(220, 0, 0, 0.05) 0%, transparent 50%), radial-gradient(ellipse at 70% 50%, rgba(0, 163, 224, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .model-container canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .model-instructions {
+            position: absolute;
+            bottom: 25px;
+            left: 25px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 12px 24px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            pointer-events: none;
+            z-index: 10;
+            letter-spacing: 1px;
+        }
+
+        .model-instructions span {
+            color: var(--rosso);
+            font-weight: 600;
+        }
+
+        .stats-section {
+            padding: 80px 40px;
+            background: linear-gradient(180deg, rgba(18, 18, 20, 0.5) 0%, rgba(26, 5, 5, 0.8) 50%, rgba(18, 18, 20, 0.5) 100%);
+            position: relative;
+        }
+
+        .stats-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 50%, rgba(220, 0, 0, 0.08) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .stats-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--rosso);
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .stat-item:nth-child(2) .stat-number {
+            color: var(--azzurro);
+        }
+
+        .stat-item:nth-child(3) .stat-number {
+            color: var(--bianco);
+        }
+
+        .stat-item:nth-child(4) .stat-number {
+            color: var(--rosso);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+        }
+
+        footer {
+            padding: 80px 40px;
+            border-top: 1px solid rgba(220, 0, 0, 0.1);
+            background: linear-gradient(to top, rgba(15, 0, 0, 0.5) 0%, transparent 100%);
+            position: relative;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(220, 0, 0, 0.3), transparent);
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-logo {
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .footer-logo span {
+            color: var(--rosso);
+        }
+
+        .footer-text {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .social-links a {
+            width: 45px;
+            height: 45px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            border-color: var(--rosso);
+            color: var(--rosso);
+            transform: translateY(-3px);
+        }
+
+        .social-links a:nth-child(2):hover {
+            border-color: var(--azzurro);
+            color: var(--azzurro);
+        }
+
+        @media (max-width: 1024px) {
+            .tabs-container {
+                flex-direction: column;
+                gap: 40px;
+            }
+
+            .tabs-nav {
+                flex-direction: row;
+                overflow-x: auto;
+                min-width: auto;
+                gap: 0;
+            }
+
+            .tab-btn {
+                white-space: nowrap;
+                padding: 15px 20px;
+            }
+
+            .tab-btn::before {
+                display: none;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                padding: 15px 20px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero {
+                padding: 100px 20px 60px;
+            }
+
+            .hero-title {
+                letter-spacing: -2px;
+            }
+
+            .section {
+                padding: 80px 20px;
+            }
+
+            .components-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .model-section {
+                padding: 80px 20px;
+            }
+
+            .model-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+
+            .model-container {
+                height: 350px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 30px;
+            }
+
+            .stat-number {
+                font-size: 2.5rem;
+            }
+
+            footer {
+                padding: 40px 20px;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                gap: 30px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cursor-follower"></div>
+
+    <nav>
+        <div class="logo">F1<span>.</span>Analisi</div>
+        <ul class="nav-links">
+            <li><a href="#components">Componenti</a></li>
+            <li><a href="#model">3D Model</a></li>
+            <li><a href="#stats">Statistiche</a></li>
+        </ul>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <div class="hero-tag">Monoposto Tech Lab</div>
+            <h1 class="hero-title">
+                <span class="outline">Engineering</span>
+                <span class="highlight">the Speed</span>
+            </h1>
+            <p class="hero-subtitle">L'analisi millimetrica dei componenti che definiscono il limite tra la vittoria e il secondo posto in Formula 1.</p>
+            <a href="#components" class="hero-cta">
+                Esplora i Componenti
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+        <div class="scroll-indicator">
+            <span>Scroll</span>
+            <div class="scroll-line"></div>
+        </div>
+    </section>
+
+    <section class="section" id="components">
+        <div class="section-header">
+            <div class="section-tag">Componenti</div>
+            <h2 class="section-title">Anatomia della <span>Vittoria</span></h2>
+        </div>
+
+        <div class="tabs-container">
+            <div class="tabs-nav">
+                <button class="tab-btn active" data-tab="aero">
+                    <span class="tab-btn-number">01</span>
+                    <span class="tab-btn-title">Aero & Chassis</span>
+                </button>
+                <button class="tab-btn" data-tab="power">
+                    <span class="tab-btn-number">02</span>
+                    <span class="tab-btn-title">Power Unit</span>
+                </button>
+                <button class="tab-btn" data-tab="tyres">
+                    <span class="tab-btn-number">03</span>
+                    <span class="tab-btn-title">Tyres</span>
+                </button>
+            </div>
+
+            <div class="tabs-content">
+                <div class="tab-panel active" id="aero">
+                    <div class="tab-intro">
+                        <h3>La Carrozzeria e il Telaio</h3>
+                        <p>Scolpiti dall'aria. Ogni linea della scocca è pensata per gestire i flussi aerodinamici e massimizzare la deportanza strutturale.</p>
+                    </div>
+                    <div class="components-grid">
+                        <div class="component-card">
+                            <div class="component-number">001</div>
+                            <h4>Monoscocca</h4>
+                            <p>Il nucleo in fibra di carbonio. Una cellula di sopravvivenza ultra-leggera progettata per resistere a carichi d'impatto estremi.</p>
+                        </div>
+                        <div class="component-card">
+                            <div class="component-number">002</div>
+                            <h4>Ala Anteriore</h4>
+                            <p>Il deviatore di flusso primario. Gestisce la direzione dell'aria indirizzandola verso il fondo e le pance della vettura.</p>
+                        </div>
+                        <div class="component-card">
+                            <div class="component-number">003</div>
+                            <h4>Sidepods</h4>
+                            <p>Canali geometrici laterali che ospitano i pacchi radianti, modellati per alimentare l'effetto downwash verso il retrotreno.</p>
+                        </div>
+                        <div class="component-card">
+                            <div class="component-number">004</div>
+                            <h4>Fondo Venturi</h4>
+                            <p>Il segreto dell'effetto suolo. Canali inferiori che sigillano l'auto all'asfalto generando una depressione aerodinamica costante.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-panel" id="power">
+                    <div class="tab-intro">
+                        <h3>La Power Unit Ibrida</h3>
+                        <p>L'apice dell'efficienza termica. Un ecosistema ingegneristico che converte calore ed energia cinetica in pura spinta motrice.</p>
+                    </div>
+                    <div class="components-grid">
+                        <div class="component-card">
+                            <div class="component-number">001</div>
+                            <h4>ICE V6 Turbo</h4>
+                            <p>Un cuore termico da 1.6 litri a iniezione diretta capace di esprimere regimi di rotazione fino a 15.000 giri al minuto.</p>
+                        </div>
+                        <div class="component-card">
+                            <div class="component-number">002</div>
+                            <h4>MGU-K</h4>
+                            <p>Il generatore cinetico ancorato all'albero motore. Recupera l'energia in frenata sprigionando 120kW di potenza elettrica aggiuntiva.</p>
+                        </div>
+                        <div class="component-card">
+                            <div class="component-number">003</div>
+                            <h4>MGU-H</h4>
+                            <p>L'unità termica accoppiata alla turbina. Elimina il lag del turbo immagazzinando l'energia in eccesso dai gas di scarico.</p>
+                        </div>
+                        <div class="component-card">
+                            <div class="component-number">004</div>
+                            <h4>Energy Store</h4>
+                            <p>Il pacco batterie agli ioni di litio, schermato termicamente, fulcro della distribuzione energetica della monoposto.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-panel" id="tyres">
+                    <div class="tab-intro">
+                        <h3>Gomme & Mescole</h3>
+                        <p>L'interfaccia chimica e meccanica con la pista. Comprendere la finestra d'utilizzo degli pneumatici determina il destino della corsa.</p>
+                    </div>
+                    <div class="components-grid">
+                        <div class="component-card">
+                            <div class="component-number">001</div>
+                            <h4>Mescole Slick</h4>
+                            <p>Morbida (Soft), Media (Medium) e Dura (Hard). Tre finestre di lavoro differenti per bilanciare aderenza pura e strategie sulla distanza.</p>
+                        </div>
+                        <div class="component-card">
+                            <div class="component-number">002</div>
+                            <h4>Intermedie & Wet</h4>
+                            <p>Disegni del battistrada intagliati per rompere il velo dell'acqua superficiale, contrastando l'effetto aquaplaning a 300 km/h.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="model-section" id="model">
+        <div class="model-section-inner">
+            <div class="model-header">
+                <div>
+                    <div class="section-tag">3D Experience</div>
+                    <h2 class="model-title">Esplora la Monoposto</h2>
+                </div>
+                <p class="model-subtitle">Interagisci con il modello 3D. Ruota, zooma e scopri ogni dettaglio della vettura.</p>
+            </div>
+            <div class="model-container" id="f1-model">
+                <div class="component-buttons" id="component-buttons">
+                    <button class="component-btn" data-component="ala anteriore">
+                        <span class="component-btn-category">Aerodinamica</span>
+                        Ala Anteriore
+                    </button>
+                    <button class="component-btn" data-component="naso">
+                        <span class="component-btn-category">Aerodinamica</span>
+                        Naso
+                    </button>
+                    <button class="component-btn" data-component="halo">
+                        <span class="component-btn-category">Sicurezza</span>
+                        Halo
+                    </button>
+                    <button class="component-btn" data-component="sospensioni anteriori">
+                        <span class="component-btn-category">Telaio</span>
+                        Sosp. Anteriori
+                    </button>
+                    <button class="component-btn" data-component="sospensioni posteriori">
+                        <span class="component-btn-category">Telaio</span>
+                        Sosp. Posteriori
+                    </button>
+                    <button class="component-btn" data-component="gomme">
+                        <span class="component-btn-category">Telaio</span>
+                        Pneumatici
+                    </button>
+                    <button class="component-btn" data-component="cestelli freni">
+                        <span class="component-btn-category">Frenata</span>
+                        Cestelli Freni
+                    </button>
+                    <button class="component-btn" data-component="sidepods">
+                        <span class="component-btn-category">Raffreddamento</span>
+                        Sidepods
+                    </button>
+                    <button class="component-btn" data-component="airbox">
+                        <span class="component-btn-category">Motore</span>
+                        Airbox
+                    </button>
+                    <button class="component-btn" data-component="power unit">
+                        <span class="component-btn-category">Motore</span>
+                        Power Unit
+                    </button>
+                    <button class="component-btn" data-component="fondo">
+                        <span class="component-btn-category">Effetto Suolo</span>
+                        Fondo Venturi
+                    </button>
+                    <button class="component-btn" data-component="floor boards">
+                        <span class="component-btn-category">Effetto Suolo</span>
+                        Floor Boards
+                    </button>
+                    <button class="component-btn" data-component="diffusore">
+                        <span class="component-btn-category">Effetto Suolo</span>
+                        Diffusore
+                    </button>
+                    <button class="component-btn" data-component="beam wing">
+                        <span class="component-btn-category">Aerodinamica</span>
+                        Beam Wing
+                    </button>
+                    <button class="component-btn" data-component="ala posteriore">
+                        <span class="component-btn-category">Aerodinamica</span>
+                        Ala Posteriore
+                    </button>
+                </div>
+                <div class="model-instructions">
+                    <span>Mouse:</span> trascina per ruotare | scroll per zoom | <span>clicca</span> sulle parti per info
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="component-tooltip" id="component-tooltip">
+        <button class="close-tooltip" onclick="hideTooltip()">&times;</button>
+        <div class="tooltip-tag" id="tooltip-tag">Componente</div>
+        <div class="tooltip-title" id="tooltip-title">Nome Componente</div>
+        <div class="tooltip-description" id="tooltip-description">Descrizione del componente.</div>
+        <div class="tooltip-specs" id="tooltip-specs"></div>
+    </div>
+
+    <section class="stats-section" id="stats">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number">1000+</div>
+                <div class="stat-label">Cavalli</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">350</div>
+                <div class="stat-label">Km/h Max</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">5G</div>
+                <div class="stat-label">In Curva</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">798</div>
+                <div class="stat-label">Kg Peso</div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">F1<span>.</span>Analisi</div>
+            <div class="footer-text">© 2026 Tech Lab. All rights reserved.</div>
+            <div class="social-links">
+                <a href="#" aria-label="Instagram">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                    </svg>
+                </a>
+                <a href="#" aria-label="Twitter">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
+                    </svg>
+                </a>
+                <a href="#" aria-label="YouTube">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/>
+                        <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const cursor = document.querySelector('.cursor-follower');
+        
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX - 10 + 'px';
+            cursor.style.top = e.clientY - 10 + 'px';
+            cursor.classList.add('active');
+        });
+
+        document.addEventListener('mouseleave', () => {
+            cursor.classList.remove('active');
+        });
+
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabPanels = document.querySelectorAll('.tab-panel');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.dataset.tab;
+                
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabPanels.forEach(p => p.classList.remove('active'));
+                
+                btn.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.component-card, .stat-item').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"></script>
+    <script src="model_data.js"></script>
+    <script>
+        const container = document.getElementById('f1-model');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0000);
+        scene.fog = new THREE.Fog(0x0a0000, 10, 50);
+        
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(6, 3, 6);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 0.95;
+        container.appendChild(renderer.domElement);
+        
+        // CSS2D Renderer for labels
+        const labelRenderer = new THREE.CSS2DRenderer();
+        labelRenderer.setSize(container.clientWidth, container.clientHeight);
+        labelRenderer.domElement.style.position = 'absolute';
+        labelRenderer.domElement.style.top = '0';
+        labelRenderer.domElement.style.left = '0';
+        labelRenderer.domElement.style.pointerEvents = 'none';
+        container.appendChild(labelRenderer.domElement);
+        
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.5;
+        controls.minDistance = 3;
+        controls.maxDistance = 15;
+        controls.maxPolarAngle = Math.PI;
+        
+        // Ambient light
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.25);
+        scene.add(ambientLight);
+        
+        // Spotlight array - studio lighting setup
+        const spotlightPositions = [
+            { x: 5, y: 8, z: 5, targetX: 0, targetY: 0, targetZ: 0, intensity: 0.75, angle: Math.PI / 5 },
+            { x: -5, y: 8, z: 5, targetX: 0, targetY: 0, targetZ: 0, intensity: 0.75, angle: Math.PI / 5 },
+            { x: 5, y: 8, z: -5, targetX: 0, targetY: 0, targetZ: 0, intensity: 0.6, angle: Math.PI / 5 },
+            { x: -5, y: 8, z: -5, targetX: 0, targetY: 0, targetZ: 0, intensity: 0.6, angle: Math.PI / 5 },
+            { x: 0, y: 10, z: 0, targetX: 0, targetY: 0, targetZ: 0, intensity: 0.85, angle: Math.PI / 4 },
+            { x: 8, y: 4, z: 0, targetX: 0, targetY: 0.5, targetZ: 0, intensity: 0.5, angle: Math.PI / 6 },
+            { x: -8, y: 4, z: 0, targetX: 0, targetY: 0.5, targetZ: 0, intensity: 0.5, angle: Math.PI / 6 },
+            { x: 0, y: 5, z: 8, targetX: 0, targetY: 0, targetZ: 0, intensity: 0.4, angle: Math.PI / 6 },
+            { x: 0, y: 5, z: -8, targetX: 0, targetY: 0, targetZ: 0, intensity: 0.4, angle: Math.PI / 6 }
+        ];
+        
+        const spotlights = [];
+        
+        spotlightPositions.forEach((config, index) => {
+            const spotlight = new THREE.SpotLight(0xffffff, config.intensity, 25, config.angle, 0.6, 1);
+            spotlight.position.set(config.x, config.y, config.z);
+            spotlight.target.position.set(config.targetX, config.targetY, config.targetZ);
+            spotlight.castShadow = index < 5;
+            if (spotlight.castShadow) {
+                spotlight.shadow.mapSize.width = 1024;
+                spotlight.shadow.mapSize.height = 1024;
+                spotlight.shadow.camera.near = 1;
+                spotlight.shadow.camera.far = 30;
+            }
+            scene.add(spotlight);
+            scene.add(spotlight.target);
+            spotlights.push({ light: spotlight, baseIntensity: config.intensity });
+        });
+        
+        // Rim lights - accent from behind
+        const rimLight1 = new THREE.SpotLight(0xdc0000, 0.6, 20, Math.PI / 8, 0.8);
+        rimLight1.position.set(-6, 3, -4);
+        rimLight1.target.position.set(0, 0.5, 0);
+        scene.add(rimLight1);
+        scene.add(rimLight1.target);
+        
+        const rimLight2 = new THREE.SpotLight(0x00a3e0, 0.4, 20, Math.PI / 8, 0.8);
+        rimLight2.position.set(6, 3, -4);
+        rimLight2.target.position.set(0, 0.5, 0);
+        scene.add(rimLight2);
+        scene.add(rimLight2.target);
+        
+        // Undercarriage lights - angled to create shadows and show channels
+        const underSpot1 = new THREE.SpotLight(0xffffff, 0.9, 15, Math.PI / 7, 0.3);
+        underSpot1.position.set(4, -0.8, 1);
+        underSpot1.target.position.set(0, -0.5, 0);
+        scene.add(underSpot1);
+        scene.add(underSpot1.target);
+        
+        const underSpot2 = new THREE.SpotLight(0xffffff, 0.9, 15, Math.PI / 7, 0.3);
+        underSpot2.position.set(-4, -0.8, 1);
+        underSpot2.target.position.set(0, -0.5, 0);
+        scene.add(underSpot2);
+        scene.add(underSpot2.target);
+        
+        const underSpot3 = new THREE.SpotLight(0xffffff, 0.7, 12, Math.PI / 6, 0.3);
+        underSpot3.position.set(0, -1, 4);
+        underSpot3.target.position.set(0, -0.5, 0);
+        scene.add(underSpot3);
+        scene.add(underSpot3.target);
+        
+        const underSpot4 = new THREE.SpotLight(0xffffff, 0.7, 12, Math.PI / 6, 0.3);
+        underSpot4.position.set(0, -1, -4);
+        underSpot4.target.position.set(0, -0.5, 0);
+        scene.add(underSpot4);
+        scene.add(underSpot4.target);
+        
+        const underSpot5 = new THREE.SpotLight(0xffffff, 0.6, 10, Math.PI / 8, 0.4);
+        underSpot5.position.set(2.5, -0.5, -2);
+        underSpot5.target.position.set(0, -0.5, 0);
+        scene.add(underSpot5);
+        scene.add(underSpot5.target);
+        
+        const underSpot6 = new THREE.SpotLight(0xffffff, 0.6, 10, Math.PI / 8, 0.4);
+        underSpot6.position.set(-2.5, -0.5, -2);
+        underSpot6.target.position.set(0, -0.5, 0);
+        scene.add(underSpot6);
+        scene.add(underSpot6.target);
+        
+        // Ground plane
+        const groundGeometry = new THREE.PlaneGeometry(50, 50);
+        const groundMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x0a0000,
+            roughness: 0.8,
+            metalness: 0.2
+        });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = -0.01;
+        ground.receiveShadow = true;
+        scene.add(ground);
+        
+        // Reflective floor circle
+        const floorGeometry = new THREE.CircleGeometry(8, 64);
+        const floorMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x0a0000,
+            roughness: 1,
+            metalness: 0
+        });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = 0;
+        floor.receiveShadow = true;
+        scene.add(floor);
+        
+        // Circular ring on floor
+        const ringGeometry = new THREE.RingGeometry(7.5, 8, 64);
+        const ringMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0xdc0000,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.6
+        });
+        const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.y = 0.01;
+        scene.add(ring);
+        
+        // Aerodynamic streamlines
+        function createAeroStreamline(startX, startY, color) {
+            const points = [];
+            const segments = 80;
+            
+            for (let i = 0; i <= segments; i++) {
+                const t = i / segments;
+                const z = 8 - t * 16;
+                
+                let x = startX;
+                let y = startY;
+                
+                // Simulate flow around car body
+                if (z < 3 && z > -4) {
+                    const factor = Math.sin((z - 3) / 7 * Math.PI);
+                    
+                    // Deflect around body
+                    if (startX > -0.8 && startX < 0.8) {
+                        x += (startX > 0 ? 1 : -1) * factor * 0.8 * (1 - Math.abs(startX));
+                    }
+                    
+                    // Ground effect - flow accelerates under car
+                    if (startY < 0.5 && z < 2 && z > -2) {
+                        y *= 0.6;
+                    }
+                    
+                    // Flow over body
+                    if (startY > 0.4 && startY < 1.2 && z < 2 && z > -1) {
+                        y += factor * 0.3;
+                    }
+                }
+                
+                // Wake turbulence behind car
+                if (z < -3) {
+                    const wakeFactor = Math.sin((-z - 3) / 5 * Math.PI);
+                    x += Math.sin(t * 15 + startX * 3) * wakeFactor * 0.3;
+                    y += Math.cos(t * 12 + startY * 2) * wakeFactor * 0.2;
+                }
+                
+                points.push(new THREE.Vector3(x, y, z));
+            }
+            
+            const curve = new THREE.CatmullRomCurve3(points);
+            const geometry = new THREE.BufferGeometry().setFromPoints(curve.getPoints(100));
+            const material = new THREE.LineBasicMaterial({ 
+                color: color,
+                transparent: true,
+                opacity: 0.35
+            });
+            return new THREE.Line(geometry, material);
+        }
+        
+        const streamlines = [];
+        
+        // Main flow lines
+        const xPositions = [-2.5, -2, -1.5, -1, -0.5, 0.5, 1, 1.5, 2, 2.5];
+        const yPositions = [0.3, 0.6, 1, 1.5];
+        
+        yPositions.forEach(y => {
+            xPositions.forEach(x => {
+                const color = Math.abs(x) < 1 && y < 1 ? 0x00a3e0 : 0xffffff;
+                const line = createAeroStreamline(x, y, color);
+                streamlines.push(line);
+                scene.add(line);
+            });
+        });
+        
+        // Load car model
+        const loader = new THREE.GLTFLoader();
+        const binaryString = atob(MODEL_BASE64);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: 'model/gltf-binary' });
+        const url = URL.createObjectURL(blob);
+        
+        let carModel = null;
+        const clickableMeshes = [];
+        
+        // Component information database
+        const componentInfo = {
+            'ala anteriore': {
+                tag: 'Aerodinamica',
+                title: 'Ala Anteriore',
+                description: 'Il deviatore di flusso primario. Gestisce la direzione dell\'aria indirizzandola verso il fondo e le pance della vettura. Genera circa il 25-30% della deportanza totale.',
+                specs: [
+                    { label: 'Deportanza', value: '~25-30%' },
+                    { label: 'Elementi', value: '5-7 profili' },
+                    { label: 'Regolazione', value: '±2°' }
+                ]
+            },
+            'ala posteriore': {
+                tag: 'Aerodinamica',
+                title: 'Ala Posteriore',
+                description: 'Genera la maggior parte della deportanza posteriore. Composta da profili principali e flap regolabili. Il DRS permette di aprirla per ridurre la resistenza.',
+                specs: [
+                    { label: 'Deportanza', value: '~40%' },
+                    { label: 'DRS', value: 'Apertura 50mm' },
+                    { label: 'Angolo', value: 'Variabile' }
+                ]
+            },
+            'fondo': {
+                tag: 'Effetto Suolo',
+                title: 'Fondo Venturi',
+                description: 'Il cuore dell\'aerodinamica moderna. I canali Venturi generano una zona di bassa pressione che "risucchia" l\'auto verso l\'asfalto, garantendo deportanza costante.',
+                specs: [
+                    { label: 'Gallerie', value: '4 canali' },
+                    { label: 'Deportanza', value: '~35-40%' },
+                    { label: 'Velocità aria', value: '+40% sotto' }
+                ]
+            },
+            'diffusore': {
+                tag: 'Effetto Suolo',
+                title: 'Diffusore',
+                description: 'Espande l\'aria accelerata dal fondo Venturi, completando l\'effetto suolo. La sua forma massimizza l\'estrazione dell\'aria dalle gallerie inferiori.',
+                specs: [
+                    { label: 'Espansione', value: '~7°' },
+                    { label: 'Strakes', value: '5-7 profili' },
+                    { label: 'Larghezza', value: '1000mm' }
+                ]
+            },
+            'sidepods': {
+                tag: 'Raffreddamento',
+                title: 'Sidepods',
+                description: 'Ospitano i radiatori per il raffreddamento del motore, olio e elettronica. La loro forma esterna è cruciale per i flussi aerodinamici verso il retrotreno.',
+                specs: [
+                    { label: 'Volume aria', value: '~2.5 m³/s' },
+                    { label: 'Radiatori', value: 'Water + Oil' },
+                    { label: 'Temperatura', value: '<100°C' }
+                ]
+            },
+            'sidepod': {
+                tag: 'Raffreddamento',
+                title: 'Sidepods',
+                description: 'Ospitano i radiatori per il raffreddamento del motore, olio e elettronica. La loro forma esterna è cruciale per i flussi aerodinamici verso il retrotreno.',
+                specs: [
+                    { label: 'Volume aria', value: '~2.5 m³/s' },
+                    { label: 'Radiatori', value: 'Water + Oil' },
+                    { label: 'Temperatura', value: '<100°C' }
+                ]
+            },
+            'telaio': {
+                tag: 'Struttura',
+                title: 'Monoscocca',
+                description: 'La cellula di sopravvivenza in fibra di carbonio. Progettata per resistere a impatti fino a 75G pur mantenendo un peso minimo di 775kg con pilota.',
+                specs: [
+                    { label: 'Peso', value: '~35kg' },
+                    { label: 'Materiali', value: 'CFRP' },
+                    { label: 'Resistenza', value: '75G impatto' }
+                ]
+            },
+            'muso': {
+                tag: 'Aerodinamica',
+                title: 'Naso & Muso',
+                description: 'Il primo elemento che incontra l\'aria. La sua forma determina come il flusso viene distribuito verso l\'ala anteriore e le pance.',
+                specs: [
+                    { label: 'Larghezza', value: '200mm' },
+                    { label: 'Impatto', value: 'Assorbimento' },
+                    { label: 'Flusso', value: 'Canalizzazione' }
+                ]
+            },
+            'ponte': {
+                tag: 'Sospensioni',
+                title: 'Sospensioni',
+                description: 'Sistema push-rod o pull-rod che collega le ruote al telaio. Gestisce il trasferimento dei carichi e l\'aerodinamica in curva.',
+                specs: [
+                    { label: 'Tipo', value: 'Push-rod' },
+                    { label: 'Escursione', value: '~25mm' },
+                    { label: 'Camber', value: '-3° a -4°' }
+                ]
+            },
+            'motore': {
+                tag: 'Power Unit',
+                title: 'Power Unit',
+                description: 'Il cuore propulsivo: V6 turbo ibrido da 1.6L. Combina motore a combustione interna con sistemi ibridi MGU-K e MGU-H per oltre 1000 CV.',
+                specs: [
+                    { label: 'Potenza', value: '~1000 CV' },
+                    { label: 'Cilindrata', value: '1.6L V6' },
+                    { label: 'RPM', value: '15.000' }
+                ]
+            },
+            'scarico': {
+                tag: 'Power Unit',
+                title: 'Scarico',
+                description: 'Convoglia i gas di scarico caldi verso la turbine e poi verso l\'esterno. Posizionato per massimizzare l\'effetto aerodinamico Coanda.',
+                specs: [
+                    { label: 'Temperatura', value: '~950°C' },
+                    { label: 'Materiale', value: 'Inconel' },
+                    { label: 'Effetto', value: 'Coanda' }
+                ]
+            },
+            'ruota': {
+                tag: 'Telaio',
+                title: 'Pneumatici',
+                description: 'Pneumatici Pirelli da 18 pollici. L\'unica interfaccia tra la vettura e l\'asfalto. La gestione della temperatura e del degrado è fondamentale.',
+                specs: [
+                    { label: 'Diametro', value: '18 pollici' },
+                    { label: 'Pressione', value: '21-23 PSI' },
+                    { label: 'Temp lavoro', value: '85-105°C' }
+                ]
+            },
+            'gomme': {
+                tag: 'Telaio',
+                title: 'Pneumatici',
+                description: 'Pneumatici Pirelli da 18 pollici. L\'unica interfaccia tra la vettura e l\'asfalto. La gestione della temperatura e del degrado è fondamentale.',
+                specs: [
+                    { label: 'Diametro', value: '18 pollici' },
+                    { label: 'Pressione', value: '21-23 PSI' },
+                    { label: 'Temp lavoro', value: '85-105°C' }
+                ]
+            },
+            'naso': {
+                tag: 'Aerodinamica',
+                title: 'Naso',
+                description: 'Il primo elemento che incontra l\'aria. La sua forma determina come il flusso viene distribuito verso l\'ala anteriore e le pance.',
+                specs: [
+                    { label: 'Larghezza', value: '200mm' },
+                    { label: 'Materiale', value: 'CFRP' },
+                    { label: 'Funzione', value: 'Canalizzazione' }
+                ]
+            },
+            'halo': {
+                tag: 'Sicurezza',
+                title: 'Halo',
+                description: 'Dispositivo di sicurezza in titanio che protegge la testa del pilota. Può sopportare il peso di un autobus a due piani. Obbligatorio dal 2018.',
+                specs: [
+                    { label: 'Materiale', value: 'Titanio 6AI-4V' },
+                    { label: 'Peso', value: '9kg' },
+                    { label: 'Resistenza', value: '12 tonnellate' }
+                ]
+            },
+            'power unit': {
+                tag: 'Motore',
+                title: 'Power Unit',
+                description: 'Il cuore propulsivo: V6 turbo ibrido da 1.6L. Combina motore a combustione interna con sistemi ibridi MGU-K e MGU-H per oltre 1000 CV.',
+                specs: [
+                    { label: 'Potenza', value: '~1000 CV' },
+                    { label: 'Cilindrata', value: '1.6L V6' },
+                    { label: 'RPM max', value: '15.000' }
+                ]
+            },
+            'sospensioni anteriori': {
+                tag: 'Telaio',
+                title: 'Sospensioni Anteriori',
+                description: 'Sistema push-rod che collega le ruote anteriori al telaio. Gestisce il trasferimento dei carichi in frenata e l\'aerodinamica.',
+                specs: [
+                    { label: 'Tipo', value: 'Push-rod' },
+                    { label: 'Escursione', value: '~25mm' },
+                    { label: 'Camber', value: '-3° a -4°' }
+                ]
+            },
+            'sospensioni posteriori': {
+                tag: 'Telaio',
+                title: 'Sospensioni Posteriori',
+                description: 'Sistema push-rod che gestisce i carichi in accelerazione. Incorpora bracci per ottimizzare il flusso verso il diffusore.',
+                specs: [
+                    { label: 'Tipo', value: 'Push-rod' },
+                    { label: 'Escursione', value: '~30mm' },
+                    { label: 'Camber', value: '-2° a -3°' }
+                ]
+            },
+            'airbox': {
+                tag: 'Motore',
+                title: 'Airbox',
+                description: 'L\'ingresso dell\'aria sopra la testa del pilota. Convoglia l\'aria al motore attraverso un condotto ottimizzato per massimizzare il flusso e la pressione.',
+                specs: [
+                    { label: 'Posizione', value: 'Sopra pilota' },
+                    { label: 'Funzione', value: 'Intake aria' },
+                    { label: 'Materiale', value: 'CFRP' }
+                ]
+            },
+            'cestelli freni': {
+                tag: 'Frenata',
+                title: 'Cestelli Freni',
+                description: 'Sistemi di raffreddamento dei dischi freno in carbonio. Ogni ruota ha un condotto dedicato che convoglia aria fresca per mantenere la temperatura ottimale.',
+                specs: [
+                    { label: 'Materiale', value: 'Carbonio' },
+                    { label: 'Temp', value: '350-1000°C' },
+                    { label: 'Diametro', value: '278mm' }
+                ]
+            },
+            'beam wing': {
+                tag: 'Aerodinamica',
+                title: 'Beam Wing',
+                description: 'Elemento aerodinamico trasversale posteriore che collega le paratie dell\'ala posteriore. Aiuta a estrarre il flusso dal diffusore e genera deportanza aggiuntiva.',
+                specs: [
+                    { label: 'Posizione', value: 'Sotto ala' },
+                    { label: 'Funzione', value: 'Estrazione' },
+                    { label: 'Deportanza', value: '~5-8%' }
+                ]
+            },
+            'floor boards': {
+                tag: 'Effetto Suolo',
+                title: 'Floor Boards',
+                description: 'Le guide aerodinamiche sul fondo della vettura. Deviano il flusso laterale e sigillano il fondo per massimizzare l\'effetto Venturi.',
+                specs: [
+                    { label: 'Materiale', value: 'CFRP' },
+                    { label: 'Funzione', value: 'Sigillo' },
+                    { label: 'Altezza', value: '~15mm' }
+                ]
+            }
+        };
+        
+        function getComponentFromName(name) {
+            const n = name.toLowerCase();
+            if (n.includes('wing') && (n.includes('front') || n.includes('anteriore'))) return 'ala anteriore';
+            if (n.includes('wing') && (n.includes('rear') || n.includes('posteriore'))) return 'ala posteriore';
+            if (n.includes('beam') && n.includes('wing')) return 'beam wing';
+            if (n.includes('floor') && n.includes('board')) return 'floor boards';
+            if (n.includes('floor') || n.includes('fondo') || n.includes('venturi')) return 'fondo';
+            if (n.includes('diffuser') || n.includes('diffusore')) return 'diffusore';
+            if (n.includes('sidepod') || n.includes('pance') || n.includes('pod')) return 'sidepods';
+            if (n.includes('chassis') || n.includes('tub') || n.includes('monocoque') || n.includes('bodywork')) return 'telaio';
+            if (n.includes('nose') || n.includes('muso')) return 'naso';
+            if (n.includes('halo')) return 'halo';
+            if (n.includes('airbox') || n.includes('air') || n.includes('intake')) return 'airbox';
+            if (n.includes('brake') || n.includes('freno') || n.includes('duct')) return 'cestelli freni';
+            if (n.includes('suspension') || n.includes('arm') || n.includes('wishbone') || n.includes('rod')) {
+                if (n.includes('front') || n.includes('anteriore')) return 'sospensioni anteriori';
+                if (n.includes('rear') || n.includes('posteriore')) return 'sospensioni posteriori';
+                return 'sospensioni anteriori';
+            }
+            if (n.includes('engine') || n.includes('motor') || n.includes('power') || n.includes('cover')) return 'power unit';
+            if (n.includes('exhaust') || n.includes('scarico') || n.includes('pipe')) return 'diffusore';
+            if (n.includes('wheel') || n.includes('tire') || n.includes('tyre') || n.includes('rim') || n.includes('rubber')) return 'gomme';
+            return null;
+        }
+        
+        function showTooltip(component) {
+            const tooltip = document.getElementById('component-tooltip');
+            const info = componentInfo[component];
+            
+            if (!info) return;
+            
+            document.getElementById('tooltip-tag').textContent = info.tag;
+            document.getElementById('tooltip-title').textContent = info.title;
+            document.getElementById('tooltip-description').textContent = info.description;
+            
+            const specsContainer = document.getElementById('tooltip-specs');
+            specsContainer.innerHTML = '';
+            info.specs.forEach(spec => {
+                specsContainer.innerHTML += `
+                    <div class="spec-item">
+                        <span>${spec.label}</span>
+                        ${spec.value}
+                    </div>
+                `;
+            });
+            
+            tooltip.classList.add('active');
+            
+            // Update active button
+            document.querySelectorAll('.component-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.component === component) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        function hideTooltip() {
+            document.getElementById('component-tooltip').classList.remove('active');
+            document.querySelectorAll('.component-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+        }
+        
+        // Make hideTooltip globally accessible
+        window.hideTooltip = hideTooltip;
+        
+        // Handle button clicks
+        document.querySelectorAll('.component-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const component = this.dataset.component;
+                if (component) {
+                    controls.autoRotate = false;
+                    showTooltip(component);
+                }
+            });
+        });
+        
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        
+        function onMouseClick(event) {
+            if (!carModel) return;
+            
+            const rect = container.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(clickableMeshes);
+            
+            if (intersects.length > 0) {
+                const clicked = intersects[0].object;
+                const meshName = clicked.name || clicked.parent?.name || 'unknown';
+                const point = intersects[0].point;
+                
+                console.log('Clicked:', meshName, '| Position:', 'x=' + point.x.toFixed(2), 'y=' + point.y.toFixed(2), 'z=' + point.z.toFixed(2));
+                
+                let componentName = getComponentFromName(meshName);
+                
+                // If not found, try to detect by position
+                if (!componentName) {
+                    // Rear wing area (most rear, highest part) - expanded
+                    if (point.z < -1.5 && point.y > 0.65) {
+                        componentName = 'ala posteriore';
+                    }
+                    // Beam wing (under rear wing, above diffuser)
+                    else if (point.z < -1.8 && point.y > 0.4 && point.y < 0.65) {
+                        componentName = 'beam wing';
+                    }
+                    // Diffuser (rear bottom area) - expanded
+                    else if (point.z < -1.5 && point.y < 0.4 && point.y > -0.1) {
+                        componentName = 'diffusore';
+                    }
+                    // Front wing area (front, low) - expanded
+                    else if (point.z > 1.5 && point.y < 0.5) {
+                        componentName = 'ala anteriore';
+                    }
+                    // Nose (front tip)
+                    else if (point.z > 2 && point.y > 0.15 && point.y < 0.65) {
+                        componentName = 'naso';
+                    }
+                    // Airbox (top center, above driver)
+                    else if (point.y > 0.7 && point.z > -0.5 && point.z < 0.5 && Math.abs(point.x) < 0.3) {
+                        componentName = 'airbox';
+                    }
+                    // Halo (central top) - expanded
+                    else if (point.y > 0.5 && point.y < 0.85 && point.z > -0.3 && point.z < 0.8 && Math.abs(point.x) < 0.4) {
+                        componentName = 'halo';
+                    }
+                    // Brake ducts / cestelli freni (inside wheel areas)
+                    else if (point.y > 0.1 && point.y < 0.4) {
+                        // Front brake ducts
+                        if (point.z > 1.2 && point.z < 2.2 && Math.abs(point.x) > 0.5 && Math.abs(point.x) < 0.9) {
+                            componentName = 'cestelli freni';
+                        }
+                        // Rear brake ducts
+                        else if (point.z < -1.2 && point.z > -2.2 && Math.abs(point.x) > 0.5 && Math.abs(point.x) < 0.9) {
+                            componentName = 'cestelli freni';
+                        }
+                    }
+                    // Front suspension - expanded (but not wheels)
+                    else if (point.z > 0.5 && point.z < 2.5 && point.y > 0.15 && point.y < 0.55 && Math.abs(point.x) > 0.5 && Math.abs(point.x) < 0.7) {
+                        componentName = 'sospensioni anteriori';
+                    }
+                    // Rear suspension - expanded (but not wheels)
+                    else if (point.z < -0.5 && point.z > -2.5 && point.y > 0.15 && point.y < 0.55 && Math.abs(point.x) > 0.5 && Math.abs(point.x) < 0.7) {
+                        componentName = 'sospensioni posteriori';
+                    }
+                    // Floor boards (floor edges)
+                    else if (point.y < 0.2 && point.y > -0.1 && Math.abs(point.x) > 0.4 && Math.abs(point.x) < 0.9 && Math.abs(point.z) < 2) {
+                        componentName = 'floor boards';
+                    }
+                    // Floor/Venturi (under car center) - expanded
+                    else if (point.y < 0.15 && point.y > -0.15 && Math.abs(point.x) < 0.5 && Math.abs(point.z) < 2.5) {
+                        componentName = 'fondo';
+                    }
+                    // Sidepods (side body) - expanded
+                    else if (Math.abs(point.x) > 0.25 && point.z > -1.5 && point.z < 1.5 && point.y > 0.15 && point.y < 0.75) {
+                        componentName = 'sidepods';
+                    }
+                    // Power unit / Engine cover
+                    else if (point.z < -0.2 && point.z > -2 && point.y > 0.45 && point.y < 0.7) {
+                        componentName = 'power unit';
+                    }
+                    // Wheels - very expanded (all 4 corners)
+                    else if (point.y < 0.55 && point.y > -0.15) {
+                        // Front wheels
+                        if (point.z > 1 && Math.abs(point.x) > 0.4) {
+                            componentName = 'gomme';
+                        }
+                        // Rear wheels
+                        else if (point.z < -1 && Math.abs(point.x) > 0.4) {
+                            componentName = 'gomme';
+                        }
+                    }
+                    // Body/telaio
+                    else if (Math.abs(point.x) < 0.55 && point.z > -1.2 && point.z < 2.2 && point.y > 0.1) {
+                        componentName = 'telaio';
+                    }
+                }
+                
+                if (componentName) {
+                    controls.autoRotate = false;
+                    showTooltip(componentName);
+                }
+            } else {
+                // Clicked outside the car - hide tooltip
+                hideTooltip();
+            }
+        }
+        
+        container.addEventListener('click', onMouseClick);
+        
+        loader.load(url, function(gltf) {
+            const model = gltf.scene;
+            carModel = model;
+            
+            model.traverse(function(child) {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    
+                    // Store mesh for raycasting
+                    clickableMeshes.push(child);
+                    
+                    // Only modify body materials, keep everything else as is
+                    if (child.material) {
+                        const mat = child.material;
+                        const meshName = child.name.toLowerCase();
+                        const isWheel = meshName.includes('wheel') || meshName.includes('tire') || meshName.includes('tyre') || meshName.includes('rim') || meshName.includes('rubber');
+                        
+                        if (!isWheel && (mat.isMeshStandardMaterial || mat.isMeshPhysicalMaterial)) {
+                            // Make only body panels matte
+                            mat.metalness = 0;
+                            mat.roughness = 1;
+                            mat.clearcoat = 0;
+                            mat.clearcoatRoughness = 1;
+                            mat.needsUpdate = true;
+                        }
+                        
+                        // Fix double-sided materials for wheels
+                        if (isWheel && mat.isMeshStandardMaterial) {
+                            mat.side = THREE.DoubleSide;
+                        }
+                    }
+                }
+            });
+            
+            const box = new THREE.Box3().setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const scale = 4 / maxDim;
+            model.scale.multiplyScalar(scale);
+            
+            // Position model so wheels touch the ground
+            const minY = box.min.y * scale;
+            model.position.set(0, -minY, 0);
+            
+            scene.add(model);
+        }, function(xhr) {
+            console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+        }, function(error) {
+            console.error('Errore caricamento modello:', error);
+        });
+        
+        let time = 0;
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.016;
+            
+            // Animate streamlines opacity
+            streamlines.forEach((line, i) => {
+                line.material.opacity = 0.25 + Math.sin(time * 1.5 + i * 0.3) * 0.1;
+            });
+            
+            // Subtle spotlight breathing effect
+            spotlights.forEach((s, i) => {
+                s.light.intensity = s.baseIntensity + Math.sin(time * 1.5 + i * 0.5) * 0.05;
+            });
+            
+            controls.update();
+            renderer.render(scene, camera);
+            labelRenderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            labelRenderer.setSize(container.clientWidth, container.clientHeight);
+        });
+    </script>
+</body>
+</html>
