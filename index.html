@@ -931,66 +931,116 @@
         .debate-container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 30px;
+            gap: 25px;
             margin-top: 50px;
         }
 
         .debate-card {
             background: linear-gradient(145deg, rgba(18, 18, 20, 0.9) 0%, rgba(26, 5, 5, 0.8) 100%);
             border: 1px solid rgba(220, 0, 0, 0.2);
-            padding: 30px;
+            padding: 25px;
             transition: all 0.3s ease;
         }
 
         .debate-card:hover {
             border-color: rgba(220, 0, 0, 0.4);
-            transform: translateY(-5px);
+            transform: translateY(-3px);
         }
 
         .debate-question {
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             font-weight: 700;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             color: var(--text-primary);
         }
 
-        .debate-options {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
+        .debate-input-container {
+            position: relative;
         }
 
-        .debate-btn {
-            background: rgba(255, 255, 255, 0.05);
+        .debate-input {
+            width: 100%;
+            background: rgba(18, 18, 20, 0.9);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 15px;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.3s ease;
+        }
+
+        .debate-input:focus {
+            outline: none;
+            border-color: var(--rosso);
+        }
+
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(18, 18, 20, 0.98);
+            border: 1px solid rgba(220, 0, 0, 0.3);
+            border-top: none;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .autocomplete-item {
+            padding: 10px 15px;
+            cursor: pointer;
             color: var(--text-secondary);
-            padding: 12px 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .autocomplete-item:hover {
+            background: rgba(220, 0, 0, 0.2);
+            color: var(--rosso);
+        }
+
+        .debate-submit {
+            margin-top: 15px;
+            background: var(--rosso);
+            border: none;
+            color: var(--bianco);
+            padding: 10px 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             cursor: pointer;
             transition: all 0.3s ease;
-            flex: 1;
-            min-width: 120px;
+            width: 100%;
         }
 
-        .debate-btn:hover {
-            background: rgba(220, 0, 0, 0.2);
-            border-color: var(--rosso);
-            color: var(--rosso);
-        }
-
-        .debate-btn.voted {
-            background: rgba(220, 0, 0, 0.3);
-            border-color: var(--rosso);
-            color: var(--rosso);
+        .debate-submit:hover {
+            background: var(--rosso-dark);
+            box-shadow: 0 0 20px rgba(220, 0, 0, 0.4);
         }
 
         .debate-results {
-            margin-top: 20px;
-            padding-top: 20px;
+            margin-top: 15px;
+            padding-top: 15px;
             border-top: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-secondary);
+        }
+
+        .debate-vote-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+        }
+
+        .debate-vote-name {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .debate-vote-count {
+            color: var(--rosso);
         }
 
         .feedback-container {
@@ -1438,31 +1488,11 @@
     <section class="section" id="community">
         <div class="section-header">
             <div class="section-tag">Community</div>
-            <h2 class="section-title">Dibattito <span>F1</span></h2>
+            <h2 class="section-title">Dibattito <span>F1</span> - Weekend <span id="weekend-number"></span></h2>
         </div>
         
-        <div class="debate-container">
-            <div class="debate-card">
-                <div class="debate-question">Qual è il miglior team del 2026?</div>
-                <div class="debate-options">
-                    <button class="debate-btn" data-vote="ferrari">🏎️ Ferrari</button>
-                    <button class="debate-btn" data-vote="redbull">🔵 Red Bull</button>
-                    <button class="debate-btn" data-vote="mclaren">🟠 McLaren</button>
-                    <button class="debate-btn" data-vote="mercedes">💚 Mercedes</button>
-                </div>
-                <div class="debate-results" id="debate-results"></div>
-            </div>
-            
-            <div class="debate-card">
-                <div class="debate-question">Miglior pilota della storia?</div>
-                <div class="debate-options">
-                    <button class="debate-btn" data-vote="schumacher">🏆 Schumacher</button>
-                    <button class="debate-btn" data-vote="hamilton">👑 Hamilton</button>
-                    <button class="debate-btn" data-vote="senna">⭐ Senna</button>
-                    <button class="debate-btn" data-vote="vettel">🦁 Vettel</button>
-                </div>
-                <div class="debate-results" id="debate-results-2"></div>
-            </div>
+        <div class="debate-container" id="debate-container">
+            <!-- Quesiti generati via JavaScript -->
         </div>
     </section>
 
@@ -2493,44 +2523,130 @@
         localStorage.setItem('f1analisi_views', views);
         document.getElementById('view-count').textContent = views.toLocaleString();
         
-        // Debate voting system
-        const debateVotes1 = JSON.parse(localStorage.getItem('debate_votes_1') || '{}');
-        const debateVotes2 = JSON.parse(localStorage.getItem('debate_votes_2') || '{}');
+        // F1 2026 Drivers and Teams
+        const f1Drivers = [
+            'Max Verstappen', 'Sergio Perez', 'Charles Leclerc', 'Carlos Sainz', 
+            'Lewis Hamilton', 'George Russell', 'Lando Norris', 'Oscar Piastri',
+            'Fernando Alonso', 'Lance Stroll', 'Pierre Gasly', 'Esteban Ocon',
+            'Valtteri Bottas', 'Zhou Guanyu', 'Kevin Magnussen', 'Nico Hulkenberg',
+            'Yuki Tsunoda', 'Daniel Ricciardo', 'Alex Albon', 'Logan Sargeant'
+        ];
         
-        function updateDebateResults(votes, elementId) {
-            const total = Object.values(votes).reduce((a, b) => a + b, 0);
-            const resultsEl = document.getElementById(elementId);
-            if (total > 0) {
-                const results = Object.entries(votes)
-                    .map(([key, val]) => `${key}: ${Math.round(val/total*100)}%`)
-                    .join(' | ');
-                resultsEl.textContent = results + ` (${total} voti)`;
-            }
-        }
+        const f1Teams = ['Ferrari', 'Red Bull', 'Mercedes', 'McLaren', 'Aston Martin', 'Alpine', 'Kick Sauber', 'Haas', 'RB', 'Williams'];
         
-        updateDebateResults(debateVotes1, 'debate-results');
-        updateDebateResults(debateVotes2, 'debate-results-2');
+        // Get current weekend number (1-24)
+        const seasonStart = new Date('2026-03-01');
+        const now = new Date();
+        const daysDiff = Math.floor((now - seasonStart) / (1000 * 60 * 60 * 24));
+        const weekendNumber = Math.min(24, Math.max(1, Math.ceil(daysDiff / 7)));
+        document.getElementById('weekend-number').textContent = `#${weekendNumber}`;
         
-        document.querySelectorAll('.debate-card:nth-child(1) .debate-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const vote = this.dataset.vote;
-                debateVotes1[vote] = (debateVotes1[vote] || 0) + 1;
-                localStorage.setItem('debate_votes_1', JSON.stringify(debateVotes1));
-                document.querySelectorAll('.debate-card:nth-child(1) .debate-btn').forEach(b => b.classList.remove('voted'));
-                this.classList.add('voted');
-                updateDebateResults(debateVotes1, 'debate-results');
+        // Questions for each weekend
+        const questions = [
+            { id: 'driver_day', label: '1. Pilota del giorno', type: 'driver' },
+            { id: 'best_overtake', label: '2. Miglior sorpasso', type: 'driver' },
+            { id: 'best_energy', label: '3. Miglior energia', type: 'driver' },
+            { id: 'most_lucky', label: '4. Più fortunato', type: 'driver' },
+            { id: 'most_unlucky', label: '5. Più sfortunato', type: 'driver' },
+            { id: 'best_team', label: '6. Miglior Team', type: 'team' },
+            { id: 'best_quali', label: '7. Miglior giro di qualifica', type: 'driver' },
+            { id: 'best_save', label: '8. Miglior salvataggio', type: 'driver' },
+            { id: 'best_battle', label: '9. Miglior battaglia', type: 'driver' },
+            { id: 'prediction', label: '10. Pronostico vittoria prossimo weekend', type: 'driver' }
+        ];
+        
+        // Generate debate cards
+        const container = document.getElementById('debate-container');
+        const storageKey = `debate_weekend_${weekendNumber}`;
+        
+        questions.forEach(q => {
+            const card = document.createElement('div');
+            card.className = 'debate-card';
+            card.innerHTML = `
+                <div class="debate-question">${q.label}</div>
+                <div class="debate-input-container">
+                    <input type="text" class="debate-input" placeholder="Scrivi il nome..." data-question="${q.id}" data-type="${q.type}">
+                    <div class="autocomplete-list" id="autocomplete-${q.id}"></div>
+                </div>
+                <button class="debate-submit" onclick="submitVote('${q.id}')">Vota</button>
+                <div class="debate-results" id="results-${q.id}"></div>
+            `;
+            container.appendChild(card);
+        });
+        
+        // Autocomplete functionality
+        document.querySelectorAll('.debate-input').forEach(input => {
+            input.addEventListener('input', function() {
+                const value = this.value.toLowerCase();
+                const type = this.dataset.type;
+                const list = document.getElementById(`autocomplete-${this.dataset.question}`);
+                
+                if (value.length < 1) {
+                    list.style.display = 'none';
+                    return;
+                }
+                
+                const suggestions = type === 'team' 
+                    ? f1Teams.filter(t => t.toLowerCase().includes(value))
+                    : f1Drivers.filter(d => d.toLowerCase().includes(value));
+                
+                if (suggestions.length > 0) {
+                    list.innerHTML = suggestions.map(s => 
+                        `<div class="autocomplete-item" onclick="selectSuggestion('${this.dataset.question}', '${s}')">${s}</div>`
+                    ).join('');
+                    list.style.display = 'block';
+                } else {
+                    list.style.display = 'none';
+                }
             });
         });
         
-        document.querySelectorAll('.debate-card:nth-child(2) .debate-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const vote = this.dataset.vote;
-                debateVotes2[vote] = (debateVotes2[vote] || 0) + 1;
-                localStorage.setItem('debate_votes_2', JSON.stringify(debateVotes2));
-                document.querySelectorAll('.debate-card:nth-child(2) .debate-btn').forEach(b => b.classList.remove('voted'));
-                this.classList.add('voted');
-                updateDebateResults(debateVotes2, 'debate-results-2');
-            });
+        function selectSuggestion(questionId, name) {
+            document.querySelector(`input[data-question="${questionId}"]`).value = name;
+            document.getElementById(`autocomplete-${questionId}`).style.display = 'none';
+        }
+        
+        function submitVote(questionId) {
+            const input = document.querySelector(`input[data-question="${questionId}"]`);
+            const vote = input.value.trim();
+            
+            if (!vote) {
+                alert('Inserisci un voto!');
+                return;
+            }
+            
+            const votes = JSON.parse(localStorage.getItem(storageKey) || '{}');
+            if (!votes[questionId]) votes[questionId] = {};
+            votes[questionId][vote] = (votes[questionId][vote] || 0) + 1;
+            
+            localStorage.setItem(storageKey, JSON.stringify(votes));
+            input.value = '';
+            updateResults(questionId);
+        }
+        
+        function updateResults(questionId) {
+            const votes = JSON.parse(localStorage.getItem(storageKey) || '{}');
+            const resultsDiv = document.getElementById(`results-${questionId}`);
+            
+            if (votes[questionId] && Object.keys(votes[questionId]).length > 0) {
+                const sorted = Object.entries(votes[questionId]).sort((a, b) => b[1] - a[1]);
+                resultsDiv.innerHTML = sorted.map(([name, count]) => 
+                    `<div class="debate-vote-item">
+                        <span class="debate-vote-name">${name}</span>
+                        <span class="debate-vote-count">${count} voti</span>
+                    </div>`
+                ).join('');
+            }
+        }
+        
+        // Load all results on page load
+        questions.forEach(q => updateResults(q.id));
+        
+        // Close autocomplete on click outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.classList.contains('debate-input')) {
+                document.querySelectorAll('.autocomplete-list').forEach(list => list.style.display = 'none');
+            }
         });
         
         // Feedback system
