@@ -1490,7 +1490,7 @@
             <div class="section-tag">Community</div>
             <h2 class="section-title">Dibattito <span>F1</span></h2>
         </div>
-        <p style="color: var(--text-secondary); margin-top: 30px;">Sezione in manutenzione - TornerÃ  disponibile a breve!</p>
+        <div id="debate-questions" style="margin-top: 40px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;"></div>
     </section>
 
     <section class="section" id="feedback">
@@ -2513,6 +2513,66 @@
             renderer.setSize(container.clientWidth, container.clientHeight);
             labelRenderer.setSize(container.clientWidth, container.clientHeight);
         });
+        
+        // Debate system
+        const questions = [
+            '1. Pilota del giorno',
+            '2. Miglior sorpasso',
+            '3. Miglior energia',
+            '4. Più fortunato',
+            '5. Più sfortunato',
+            '6. Miglior Team',
+            '7. Miglior giro di qualifica',
+            '8. Miglior salvataggio',
+            '9. Miglior battaglia',
+            '10. Pronostico prossimo GP'
+        ];
+        
+        const container = document.getElementById('debate-questions');
+        if (container) {
+            questions.forEach((q, i) => {
+                const card = document.createElement('div');
+                card.className = 'debate-card';
+                card.innerHTML = `
+                    <div class="debate-question">${q}</div>
+                    <input type="text" class="debate-input" id="q${i+1}" placeholder="Scrivi il nome...">
+                    <button class="debate-submit" onclick="vote(${i+1})">Vota</button>
+                    <div class="debate-results" id="r${i+1}"></div>
+                `;
+                container.appendChild(card);
+                showResults(i+1);
+            });
+        }
+        
+        window.vote = function(num) {
+            const input = document.getElementById('q' + num);
+            const value = input.value.trim();
+            if (!value) return alert('Inserisci un valore!');
+            
+            const key = 'debate_' + num;
+            const votes = JSON.parse(localStorage.getItem(key) || '{}');
+            votes[value] = (votes[value] || 0) + 1;
+            localStorage.setItem(key, JSON.stringify(votes));
+            input.value = '';
+            showResults(num);
+        };
+        
+        function showResults(num) {
+            const key = 'debate_' + num;
+            const votes = JSON.parse(localStorage.getItem(key) || '{}');
+            const div = document.getElementById('r' + num);
+            if (Object.keys(votes).length === 0) {
+                div.innerHTML = '<span style="color: var(--text-muted); font-size: 0.8rem;">Nessun voto</span>';
+            } else {
+                const sorted = Object.entries(votes).sort((a,b) => b[1] - a[1]).slice(0, 3);
+                div.innerHTML = sorted.map(([name, count]) => 
+                    `<div style="display: flex; justify-content: space-between; padding: 3px 0;">
+                        <span>${name}</span>
+                        <span style="color: var(--rosso);">${count}</span>
+                    </div>`
+                ).join('');
+            }
+        }
         
         // View counter with localStorage
         let views = localStorage.getItem('f1analisi_views') || 0;
