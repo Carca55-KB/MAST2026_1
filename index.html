@@ -1653,18 +1653,18 @@
         const streamlines = [];
         const flowDashes = [];
         
-        // Side streamlines - reduced for performance
-        const xPositions = [-0.67, 0.67];
-        const yPositions = [0.02, 0.15, 0.3];
+        // Side streamlines - spread evenly
+        const xPositions = [-0.68, -0.66, 0.66, 0.68];
+        const yPositions = [0.02, 0.1, 0.2, 0.3, 0.45];
         
         xPositions.forEach(x => {
             yPositions.forEach(y => {
-                const color = Math.abs(x) < 0.66 && y < 0.3 ? 0x00a3e0 : 0xffffff;
+                const color = Math.abs(x) < 0.67 && y < 0.35 ? 0x00a3e0 : 0xffffff;
                 const streamline = createAeroStreamline(x, y, color);
                 streamlines.push(streamline);
                 scene.add(streamline.line);
                 
-                for (let p = 0; p < 12; p++) {
+                for (let p = 0; p < 15; p++) {
                     const dashGeometry = new THREE.BufferGeometry();
                     const dashMaterial = new THREE.LineBasicMaterial({ 
                         color: color,
@@ -1677,7 +1677,7 @@
                     flowDashes.push({
                         mesh: dash,
                         curve: streamline.curve,
-                        t: p / 12,
+                        t: p / 15,
                         speed: 0.006 + Math.random() * 0.002,
                         length: 0.01 + Math.random() * 0.006
                     });
@@ -1687,9 +1687,9 @@
             });
         });
         
-        // Central streamlines - reduced for performance
-        const centerXPositions = [-0.2, 0, 0.2];
-        const centerYPositions = [0.5, 0.7];
+        // Central streamlines - flow over the top of the car
+        const centerXPositions = [-0.22, -0.1, 0, 0.1, 0.22];
+        const centerYPositions = [0.5, 0.65, 0.8];
         
         centerXPositions.forEach(x => {
             centerYPositions.forEach(y => {
@@ -1698,7 +1698,7 @@
                 streamlines.push(streamline);
                 scene.add(streamline.line);
                 
-                for (let p = 0; p < 10; p++) {
+                for (let p = 0; p < 12; p++) {
                     const dashGeometry = new THREE.BufferGeometry();
                     const dashMaterial = new THREE.LineBasicMaterial({ 
                         color: color,
@@ -1711,7 +1711,7 @@
                     flowDashes.push({
                         mesh: dash,
                         curve: streamline.curve,
-                        t: p / 10,
+                        t: p / 12,
                         speed: 0.005 + Math.random() * 0.002,
                         length: 0.01 + Math.random() * 0.005
                     });
