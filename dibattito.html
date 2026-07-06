@@ -455,28 +455,58 @@
 
         // Autocomplete functionality
         document.querySelectorAll('.debate-input').forEach(input => {
+            // Show suggestions on focus
+            input.addEventListener('focus', function() {
+                const type = this.dataset.type;
+                const index = this.dataset.index;
+                const dropdown = document.getElementById(`dropdown-${index}`);
+                const value = this.value.toLowerCase();
+                
+                // Show all options when focused and empty
+                if (value.length < 2) {
+                    const allOptions = type === 'team' ? f1Teams : f1Drivers;
+                    dropdown.innerHTML = allOptions.slice(0, 8).map(s => 
+                        `<div class="autocomplete-item" onclick="selectSuggestion(${index}, '${s}')">${s}</div>`
+                    ).join('');
+                    dropdown.style.display = 'block';
+                }
+            });
+            
             input.addEventListener('input', function() {
                 const value = this.value.toLowerCase();
                 const type = this.dataset.type;
                 const index = this.dataset.index;
                 const dropdown = document.getElementById(`dropdown-${index}`);
                 
+                const allOptions = type === 'team' ? f1Teams : f1Drivers;
+                
                 if (value.length < 2) {
-                    dropdown.style.display = 'none';
+                    // Show popular options
+                    dropdown.innerHTML = allOptions.slice(0, 8).map(s => 
+                        `<div class="autocomplete-item" onclick="selectSuggestion(${index}, '${s}')">${s}</div>`
+                    ).join('');
+                    dropdown.style.display = 'block';
                     return;
                 }
                 
-                const suggestions = type === 'team' 
-                    ? f1Teams.filter(t => t.toLowerCase().includes(value))
-                    : f1Drivers.filter(d => d.toLowerCase().includes(value));
+                // Filter and sort by relevance
+                const suggestions = allOptions
+                    .filter(opt => opt.toLowerCase().includes(value))
+                    .sort((a, b) => {
+                        // Prioritize starts-with
+                        const aStarts = a.toLowerCase().startsWith(value) ? 0 : 1;
+                        const bStarts = b.toLowerCase().startsWith(value) ? 0 : 1;
+                        return aStarts - bStarts;
+                    });
                 
                 if (suggestions.length > 0) {
-                    dropdown.innerHTML = suggestions.slice(0, 5).map(s => 
+                    dropdown.innerHTML = suggestions.slice(0, 8).map(s => 
                         `<div class="autocomplete-item" onclick="selectSuggestion(${index}, '${s}')">${s}</div>`
                     ).join('');
                     dropdown.style.display = 'block';
                 } else {
-                    dropdown.style.display = 'none';
+                    dropdown.innerHTML = '<div class="autocomplete-item" style="color: var(--text-muted); cursor: default;">Nessun risultato</div>';
+                    dropdown.style.display = 'block';
                 }
             });
         });
