@@ -872,6 +872,78 @@
         const clickableMeshes = [];
         const originalMaterials = new Map();
         let highlightedMeshes = [];
+        const meshToComponent = new Map(); // Mappa mesh -> nome componente
+        
+        // Definizione regioni spaziali per ogni componente
+        const componentRegions = {
+            'ala posteriore': { zMin: -2.5, zMax: -1.3, yMin: 0.6, yMax: 1.2 },
+            'beam wing': { zMin: -2.2, zMax: -1.5, yMin: 0.35, yMax: 0.65 },
+            'diffusore': { zMin: -2.5, zMax: -1.3, yMin: -0.1, yMax: 0.35 },
+            'ala anteriore': { zMin: 1.3, zMax: 2.5, yMin: 0, yMax: 0.5 },
+            'naso': { zMin: 1.8, zMax: 2.8, yMin: 0.1, yMax: 0.7 },
+            'airbox': { zMin: -0.6, zMax: 0.6, yMin: 0.65, yMax: 1.0, xMin: -0.35, xMax: 0.35 },
+            'halo': { zMin: -0.4, zMax: 0.9, yMin: 0.5, yMax: 0.9, xMin: -0.45, xMax: 0.45 },
+            'sospensioni anteriori': { zMin: 0.4, zMax: 2.5, yMin: 0.1, yMax: 0.55, xMin: 0.45, xMax: 0.75, xMinNeg: true },
+            'sospensioni posteriori': { zMin: -2.5, zMax: -0.4, yMin: 0.1, yMax: 0.55, xMin: 0.45, xMax: 0.75, xMinNeg: true },
+            'floor boards': { zMin: -2.0, zMax: 2.0, yMin: -0.1, yMax: 0.2, xMin: 0.35, xMax: 0.95, xMinNeg: true },
+            'fondo': { zMin: -2.5, zMax: 2.5, yMin: -0.15, yMax: 0.15, xMin: -0.5, xMax: 0.5 },
+            'sidepods': { zMin: -1.5, zMax: 1.5, yMin: 0.15, yMax: 0.75, xMin: 0.2, xMax: 0.6, xMinNeg: true },
+            'power unit': { zMin: -1.0, zMax: 1.0, yMin: 0.2, yMax: 0.6, xMin: -0.35, xMax: 0.35 },
+            'cestelli freni': { zMinFront: 1.1, zMaxFront: 2.3, zMinRear: -2.3, zMaxRear: -1.1, yMin: 0.1, yMax: 0.4, xMin: 0.45, xMax: 1.0, xMinNeg: true },
+            'gomme': { yMin: 0, yMax: 0.4, xMin: 0.55, xMax: 1.0, xMinNeg: true, zMinFront: 1.4, zMinRear: -2.5, zMaxFront: 2.5, zMaxRear: -1.4 }
+        };
+        
+        function assignMeshToComponent(mesh) {
+            mesh.geometry.computeBoundingBox();
+            const box = mesh.geometry.boundingBox.clone();
+            box.applyMatrix4(mesh.matrixWorld);
+            const center = new THREE.Vector3();
+            box.getCenter(center);
+            
+            const x = center.x;
+            const y = center.y;
+            const z = center.z;
+            
+            for (const [component, region] of Object.entries(componentRegions)) {
+                let matches = true;
+                
+                if (region.xMin !== undefined && region.xMax !== undefined) {
+                    if (region.xMinNeg) {
+                        if (!(Math.abs(x) >= region.xMin && Math.abs(x) <= region.xMax)) matches = false;
+                    } else {
+                        if (!(x >= region.xMin && x <= region.xMax)) matches = false;
+                    }
+                }
+                
+                if (region.yMin !== undefined && region.yMax !== undefined) {
+                    if (!(y >= region.yMin && y <= region.yMax)) matches = false;
+                }
+                
+                if (region.zMin !== undefined && region.zMax !== undefined) {
+                    if (!(z >= region.zMin && z <= region.zMax)) matches = false;
+                }
+                
+                // Gestione speciale per cestelli freni (front o rear)
+                if (region.zMinFront !== undefined) {
+                    const inFront = z >= region.zMinFront && z <= region.zMaxFront;
+                    const inRear = z >= region.zMinRear && z <= region.zMaxRear;
+                    if (!inFront && !inRear) matches = false;
+                }
+                
+                // Gestione speciale per gomme
+                if (region.zMinFront !== undefined && region.zMinRear !== undefined && component === 'gomme') {
+                    const inFront = z >= region.zMinFront && z <= region.zMaxFront;
+                    const inRear = z >= region.zMinRear && z <= region.zMaxRear;
+                    if (!inFront && !inRear) matches = false;
+                }
+                
+                if (matches) {
+                    return component;
+                }
+            }
+            
+            return null;
+        }
         
         const componentInfo = {
             'ala anteriore': {
@@ -1147,73 +1219,9 @@
             
             carModel.traverse(function(child) {
                 if (child.isMesh && child.material) {
-                    const meshName = (child.name || child.parent?.name || '').toLowerCase();
-                    let matches = false;
+                    const assignedComponent = meshToComponent.get(child.uuid);
                     
-                    const n = meshName;
-                    
-                    // Aerodinamica
-                    if (componentName === 'ala anteriore') {
-                        if ((n.includes('wing') || n.includes('ala')) && (n.includes('front') || n.includes('anteriore') || n.includes('frontwing'))) matches = true;
-                    }
-                    if (componentName === 'ala posteriore') {
-                        if ((n.includes('wing') || n.includes('ala')) && (n.includes('rear') || n.includes('posteriore') || n.includes('rearwing'))) matches = true;
-                    }
-                    if (componentName === 'beam wing') {
-                        if (n.includes('beam') || n.includes('beamwing')) matches = true;
-                    }
-                    if (componentName === 'naso') {
-                        if (n.includes('nose') || n.includes('muso')) matches = true;
-                    }
-                    
-                    // Effetto suolo
-                    if (componentName === 'fondo') {
-                        if (n.includes('floor') || n.includes('fondo') || n.includes('venturi') || n.includes('underfloor')) matches = true;
-                    }
-                    if (componentName === 'floor boards') {
-                        if (n.includes('floorboard') || n.includes('floor_board') || n.includes('board')) matches = true;
-                    }
-                    if (componentName === 'diffusore') {
-                        if (n.includes('diffuser') || n.includes('diffusore')) matches = true;
-                    }
-                    
-                    // Raffreddamento
-                    if (componentName === 'sidepods') {
-                        if (n.includes('sidepod') || n.includes('pance') || n.includes('pod') || n.includes('radiator')) matches = true;
-                    }
-                    
-                    // Motore
-                    if (componentName === 'airbox') {
-                        if (n.includes('airbox') || n.includes('air_box') || n.includes('intake') || n.includes('airintake')) matches = true;
-                    }
-                    if (componentName === 'power unit') {
-                        if (n.includes('engine') || n.includes('motor') || n.includes('power') || n.includes('cover') || n.includes('bodywork')) matches = true;
-                    }
-                    
-                    // Sicurezza
-                    if (componentName === 'halo') {
-                        if (n.includes('halo')) matches = true;
-                    }
-                    
-                    // Sospensioni
-                    if (componentName === 'sospensioni anteriori') {
-                        if ((n.includes('suspension') || n.includes('arm') || n.includes('wishbone') || n.includes('rod') || n.includes('pushrod')) && (n.includes('front') || n.includes('anteriore'))) matches = true;
-                    }
-                    if (componentName === 'sospensioni posteriori') {
-                        if ((n.includes('suspension') || n.includes('arm') || n.includes('wishbone') || n.includes('rod') || n.includes('pushrod')) && (n.includes('rear') || n.includes('posteriore'))) matches = true;
-                    }
-                    
-                    // Freni
-                    if (componentName === 'cestelli freni') {
-                        if (n.includes('brake') || n.includes('freno') || n.includes('duct') || n.includes('brakeduct')) matches = true;
-                    }
-                    
-                    // Gomme
-                    if (componentName === 'gomme') {
-                        if (n.includes('wheel') || n.includes('tire') || n.includes('tyre') || n.includes('rim') || n.includes('rubber')) matches = true;
-                    }
-                    
-                    if (matches) {
+                    if (assignedComponent === componentName) {
                         if (child.material.emissive) {
                             child.material.emissive.copy(highlightColor);
                             child.material.emissiveIntensity = 0.5;
@@ -1225,16 +1233,6 @@
                     }
                 }
             });
-            
-            // Log per debug
-            if (highlightedMeshes.length === 0) {
-                console.log('Nessuna mesh trovata per:', componentName);
-                carModel.traverse(function(child) {
-                    if (child.isMesh) {
-                        console.log('Mesh name:', child.name || child.parent?.name || 'unnamed');
-                    }
-                });
-            }
         }
         
         function showTooltip(component) {
@@ -1423,6 +1421,16 @@
             
             const minY = box.min.y * scale;
             model.position.set(0, -minY, 0);
+            
+            // Assegna ogni mesh a un componente basandosi sulla posizione
+            model.traverse(function(child) {
+                if (child.isMesh) {
+                    const component = assignMeshToComponent(child);
+                    if (component) {
+                        meshToComponent.set(child.uuid, component);
+                    }
+                }
+            });
             
             scene.add(model);
         }, function(xhr) {
