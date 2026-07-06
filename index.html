@@ -1360,13 +1360,10 @@
         const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
         camera.position.set(6, 3, 6);
         
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: false });
         renderer.setSize(container.clientWidth, container.clientHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 0.95;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+        renderer.shadowMap.enabled = false;
         container.appendChild(renderer.domElement);
         
         // CSS2D Renderer for labels
@@ -1391,86 +1388,29 @@
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.25);
         scene.add(ambientLight);
         
-        // Spotlight array - studio lighting setup
+        // Simplified spotlight array for better performance
         const spotlightPositions = [
-            { x: 5, y: 8, z: 5, targetX: 0, targetY: 0, targetZ: 0, intensity: 0.75, angle: Math.PI / 5 },
-            { x: -5, y: 8, z: 5, targetX: 0, targetY: 0, targetZ: 0, intensity: 0.75, angle: Math.PI / 5 },
-            { x: 5, y: 8, z: -5, targetX: 0, targetY: 0, targetZ: 0, intensity: 0.6, angle: Math.PI / 5 },
-            { x: -5, y: 8, z: -5, targetX: 0, targetY: 0, targetZ: 0, intensity: 0.6, angle: Math.PI / 5 },
-            { x: 0, y: 10, z: 0, targetX: 0, targetY: 0, targetZ: 0, intensity: 0.85, angle: Math.PI / 4 },
-            { x: 8, y: 4, z: 0, targetX: 0, targetY: 0.5, targetZ: 0, intensity: 0.5, angle: Math.PI / 6 },
-            { x: -8, y: 4, z: 0, targetX: 0, targetY: 0.5, targetZ: 0, intensity: 0.5, angle: Math.PI / 6 },
-            { x: 0, y: 5, z: 8, targetX: 0, targetY: 0, targetZ: 0, intensity: 0.4, angle: Math.PI / 6 },
-            { x: 0, y: 5, z: -8, targetX: 0, targetY: 0, targetZ: 0, intensity: 0.4, angle: Math.PI / 6 }
+            { x: 5, y: 8, z: 5, targetX: 0, targetY: 0, targetZ: 0, intensity: 0.8 },
+            { x: -5, y: 8, z: 5, targetX: 0, targetY: 0, targetZ: 0, intensity: 0.8 },
+            { x: 0, y: 10, z: 0, targetX: 0, targetY: 0, targetZ: 0, intensity: 1 }
         ];
         
-        const spotlights = [];
-        
-        spotlightPositions.forEach((config, index) => {
-            const spotlight = new THREE.SpotLight(0xffffff, config.intensity, 25, config.angle, 0.6, 1);
+        spotlightPositions.forEach((config) => {
+            const spotlight = new THREE.SpotLight(0xffffff, config.intensity, 25, Math.PI / 5, 0.6, 1);
             spotlight.position.set(config.x, config.y, config.z);
             spotlight.target.position.set(config.targetX, config.targetY, config.targetZ);
-            spotlight.castShadow = index < 5;
-            if (spotlight.castShadow) {
-                spotlight.shadow.mapSize.width = 1024;
-                spotlight.shadow.mapSize.height = 1024;
-                spotlight.shadow.camera.near = 1;
-                spotlight.shadow.camera.far = 30;
-            }
             scene.add(spotlight);
             scene.add(spotlight.target);
-            spotlights.push({ light: spotlight, baseIntensity: config.intensity });
         });
         
-        // Rim lights - accent from behind
-        const rimLight1 = new THREE.SpotLight(0xdc0000, 0.6, 20, Math.PI / 8, 0.8);
-        rimLight1.position.set(-6, 3, -4);
-        rimLight1.target.position.set(0, 0.5, 0);
+        // Simple rim lights
+        const rimLight1 = new THREE.PointLight(0xdc0000, 0.5, 15);
+        rimLight1.position.set(-5, 3, -3);
         scene.add(rimLight1);
-        scene.add(rimLight1.target);
         
-        const rimLight2 = new THREE.SpotLight(0x00a3e0, 0.4, 20, Math.PI / 8, 0.8);
-        rimLight2.position.set(6, 3, -4);
-        rimLight2.target.position.set(0, 0.5, 0);
+        const rimLight2 = new THREE.PointLight(0x00a3e0, 0.3, 15);
+        rimLight2.position.set(5, 3, -3);
         scene.add(rimLight2);
-        scene.add(rimLight2.target);
-        
-        // Undercarriage lights - angled to create shadows and show channels
-        const underSpot1 = new THREE.SpotLight(0xffffff, 0.9, 15, Math.PI / 7, 0.3);
-        underSpot1.position.set(4, -0.8, 1);
-        underSpot1.target.position.set(0, -0.5, 0);
-        scene.add(underSpot1);
-        scene.add(underSpot1.target);
-        
-        const underSpot2 = new THREE.SpotLight(0xffffff, 0.9, 15, Math.PI / 7, 0.3);
-        underSpot2.position.set(-4, -0.8, 1);
-        underSpot2.target.position.set(0, -0.5, 0);
-        scene.add(underSpot2);
-        scene.add(underSpot2.target);
-        
-        const underSpot3 = new THREE.SpotLight(0xffffff, 0.7, 12, Math.PI / 6, 0.3);
-        underSpot3.position.set(0, -1, 4);
-        underSpot3.target.position.set(0, -0.5, 0);
-        scene.add(underSpot3);
-        scene.add(underSpot3.target);
-        
-        const underSpot4 = new THREE.SpotLight(0xffffff, 0.7, 12, Math.PI / 6, 0.3);
-        underSpot4.position.set(0, -1, -4);
-        underSpot4.target.position.set(0, -0.5, 0);
-        scene.add(underSpot4);
-        scene.add(underSpot4.target);
-        
-        const underSpot5 = new THREE.SpotLight(0xffffff, 0.6, 10, Math.PI / 8, 0.4);
-        underSpot5.position.set(2.5, -0.5, -2);
-        underSpot5.target.position.set(0, -0.5, 0);
-        scene.add(underSpot5);
-        scene.add(underSpot5.target);
-        
-        const underSpot6 = new THREE.SpotLight(0xffffff, 0.6, 10, Math.PI / 8, 0.4);
-        underSpot6.position.set(-2.5, -0.5, -2);
-        underSpot6.target.position.set(0, -0.5, 0);
-        scene.add(underSpot6);
-        scene.add(underSpot6.target);
         
         // Ground plane
         const groundGeometry = new THREE.PlaneGeometry(50, 50);
@@ -1514,7 +1454,7 @@
         // Aerodynamic streamlines with proper collision avoidance
         function createAeroStreamline(startX, startY, color) {
             const points = [];
-            const segments = 150;
+            const segments = 80;
             
             // Minimum clearance from car surface
             const clearance = 0.005;
@@ -1713,9 +1653,9 @@
         const streamlines = [];
         const flowDashes = [];
         
-        // Side streamlines - extremely tight to car body
-        const xPositions = [-0.67, -0.65, 0.65, 0.67];
-        const yPositions = [0.02, 0.06, 0.12, 0.22, 0.35];
+        // Side streamlines - reduced for performance
+        const xPositions = [-0.67, 0.67];
+        const yPositions = [0.02, 0.15, 0.3];
         
         xPositions.forEach(x => {
             yPositions.forEach(y => {
@@ -1724,7 +1664,7 @@
                 streamlines.push(streamline);
                 scene.add(streamline.line);
                 
-                for (let p = 0; p < 20; p++) {
+                for (let p = 0; p < 12; p++) {
                     const dashGeometry = new THREE.BufferGeometry();
                     const dashMaterial = new THREE.LineBasicMaterial({ 
                         color: color,
@@ -1737,7 +1677,7 @@
                     flowDashes.push({
                         mesh: dash,
                         curve: streamline.curve,
-                        t: p / 20,
+                        t: p / 12,
                         speed: 0.006 + Math.random() * 0.002,
                         length: 0.01 + Math.random() * 0.006
                     });
@@ -1747,9 +1687,9 @@
             });
         });
         
-        // Central streamlines - flow over the top of the car
-        const centerXPositions = [-0.25, -0.12, 0, 0.12, 0.25];
-        const centerYPositions = [0.48, 0.6, 0.72, 0.85];
+        // Central streamlines - reduced for performance
+        const centerXPositions = [-0.2, 0, 0.2];
+        const centerYPositions = [0.5, 0.7];
         
         centerXPositions.forEach(x => {
             centerYPositions.forEach(y => {
@@ -1758,7 +1698,7 @@
                 streamlines.push(streamline);
                 scene.add(streamline.line);
                 
-                for (let p = 0; p < 18; p++) {
+                for (let p = 0; p < 10; p++) {
                     const dashGeometry = new THREE.BufferGeometry();
                     const dashMaterial = new THREE.LineBasicMaterial({ 
                         color: color,
@@ -1771,7 +1711,7 @@
                     flowDashes.push({
                         mesh: dash,
                         curve: streamline.curve,
-                        t: p / 18,
+                        t: p / 10,
                         speed: 0.005 + Math.random() * 0.002,
                         length: 0.01 + Math.random() * 0.005
                     });
@@ -2311,11 +2251,6 @@
             // Subtle streamline opacity
             streamlines.forEach((s, i) => {
                 s.line.material.opacity = 0.1 + Math.sin(time * 1.5 + i * 0.3) * 0.03;
-            });
-            
-            // Subtle spotlight breathing effect
-            spotlights.forEach((s, i) => {
-                s.light.intensity = s.baseIntensity + Math.sin(time * 1.5 + i * 0.5) * 0.05;
             });
             
             controls.update();
