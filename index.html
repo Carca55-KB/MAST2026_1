@@ -928,6 +928,174 @@
             color: var(--azzurro);
         }
 
+        .debate-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .debate-card {
+            background: linear-gradient(145deg, rgba(18, 18, 20, 0.9) 0%, rgba(26, 5, 5, 0.8) 100%);
+            border: 1px solid rgba(220, 0, 0, 0.2);
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .debate-card:hover {
+            border-color: rgba(220, 0, 0, 0.4);
+            transform: translateY(-5px);
+        }
+
+        .debate-question {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: var(--text-primary);
+        }
+
+        .debate-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .debate-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .debate-btn:hover {
+            background: rgba(220, 0, 0, 0.2);
+            border-color: var(--rosso);
+            color: var(--rosso);
+        }
+
+        .debate-btn.voted {
+            background: rgba(220, 0, 0, 0.3);
+            border-color: var(--rosso);
+            color: var(--rosso);
+        }
+
+        .debate-results {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .feedback-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 50px;
+        }
+
+        .feedback-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .feedback-input {
+            background: rgba(18, 18, 20, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.3s ease;
+        }
+
+        .feedback-input:focus {
+            outline: none;
+            border-color: var(--rosso);
+        }
+
+        .feedback-textarea {
+            background: rgba(18, 18, 20, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            min-height: 120px;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .feedback-textarea:focus {
+            outline: none;
+            border-color: var(--rosso);
+        }
+
+        .feedback-submit {
+            background: var(--rosso);
+            border: none;
+            color: var(--bianco);
+            padding: 15px 30px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .feedback-submit:hover {
+            background: var(--rosso-dark);
+            box-shadow: 0 0 30px rgba(220, 0, 0, 0.4);
+        }
+
+        .feedback-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .feedback-item {
+            background: rgba(18, 18, 20, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px;
+        }
+
+        .feedback-item-name {
+            font-weight: 700;
+            color: var(--rosso);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .feedback-item-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .feedback-item-date {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 10px;
+        }
+
+        .feedback-empty {
+            color: var(--text-muted);
+            text-align: center;
+            padding: 40px;
+            font-style: italic;
+        }
+
         @media (max-width: 1024px) {
             .tabs-container {
                 flex-direction: column;
@@ -1024,6 +1192,8 @@
             <li><a href="#components">Componenti</a></li>
             <li><a href="#model">3D Model</a></li>
             <li><a href="#stats">Statistiche</a></li>
+            <li><a href="#community">Dibattito</a></li>
+            <li><a href="#feedback">Feedback</a></li>
         </ul>
     </nav>
 
@@ -1261,6 +1431,56 @@
             <div class="stat-item">
                 <div class="stat-number">798</div>
                 <div class="stat-label">Kg Peso</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="community">
+        <div class="section-header">
+            <div class="section-tag">Community</div>
+            <h2 class="section-title">Dibattito <span>F1</span></h2>
+        </div>
+        
+        <div class="debate-container">
+            <div class="debate-card">
+                <div class="debate-question">Qual è il miglior team del 2026?</div>
+                <div class="debate-options">
+                    <button class="debate-btn" data-vote="ferrari">🏎️ Ferrari</button>
+                    <button class="debate-btn" data-vote="redbull">🔵 Red Bull</button>
+                    <button class="debate-btn" data-vote="mclaren">🟠 McLaren</button>
+                    <button class="debate-btn" data-vote="mercedes">💚 Mercedes</button>
+                </div>
+                <div class="debate-results" id="debate-results"></div>
+            </div>
+            
+            <div class="debate-card">
+                <div class="debate-question">Miglior pilota della storia?</div>
+                <div class="debate-options">
+                    <button class="debate-btn" data-vote="schumacher">🏆 Schumacher</button>
+                    <button class="debate-btn" data-vote="hamilton">👑 Hamilton</button>
+                    <button class="debate-btn" data-vote="senna">⭐ Senna</button>
+                    <button class="debate-btn" data-vote="vettel">🦁 Vettel</button>
+                </div>
+                <div class="debate-results" id="debate-results-2"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="feedback">
+        <div class="section-header">
+            <div class="section-tag">Feedback</div>
+            <h2 class="section-title">Migliora il <span>Sito</span></h2>
+        </div>
+        
+        <div class="feedback-container">
+            <div class="feedback-form">
+                <input type="text" id="feedback-name" placeholder="Il tuo nome" class="feedback-input">
+                <textarea id="feedback-text" placeholder="Scrivi un commento o suggerimento..." class="feedback-textarea"></textarea>
+                <button class="feedback-submit" onclick="submitFeedback()">Invia Feedback</button>
+            </div>
+            
+            <div class="feedback-list" id="feedback-list">
+                <div class="feedback-empty">Nessun commento ancora. Sii il primo!</div>
             </div>
         </div>
     </section>
@@ -2272,6 +2492,89 @@
         views = parseInt(views) + 1;
         localStorage.setItem('f1analisi_views', views);
         document.getElementById('view-count').textContent = views.toLocaleString();
+        
+        // Debate voting system
+        const debateVotes1 = JSON.parse(localStorage.getItem('debate_votes_1') || '{}');
+        const debateVotes2 = JSON.parse(localStorage.getItem('debate_votes_2') || '{}');
+        
+        function updateDebateResults(votes, elementId) {
+            const total = Object.values(votes).reduce((a, b) => a + b, 0);
+            const resultsEl = document.getElementById(elementId);
+            if (total > 0) {
+                const results = Object.entries(votes)
+                    .map(([key, val]) => `${key}: ${Math.round(val/total*100)}%`)
+                    .join(' | ');
+                resultsEl.textContent = results + ` (${total} voti)`;
+            }
+        }
+        
+        updateDebateResults(debateVotes1, 'debate-results');
+        updateDebateResults(debateVotes2, 'debate-results-2');
+        
+        document.querySelectorAll('.debate-card:nth-child(1) .debate-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const vote = this.dataset.vote;
+                debateVotes1[vote] = (debateVotes1[vote] || 0) + 1;
+                localStorage.setItem('debate_votes_1', JSON.stringify(debateVotes1));
+                document.querySelectorAll('.debate-card:nth-child(1) .debate-btn').forEach(b => b.classList.remove('voted'));
+                this.classList.add('voted');
+                updateDebateResults(debateVotes1, 'debate-results');
+            });
+        });
+        
+        document.querySelectorAll('.debate-card:nth-child(2) .debate-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const vote = this.dataset.vote;
+                debateVotes2[vote] = (debateVotes2[vote] || 0) + 1;
+                localStorage.setItem('debate_votes_2', JSON.stringify(debateVotes2));
+                document.querySelectorAll('.debate-card:nth-child(2) .debate-btn').forEach(b => b.classList.remove('voted'));
+                this.classList.add('voted');
+                updateDebateResults(debateVotes2, 'debate-results-2');
+            });
+        });
+        
+        // Feedback system
+        function loadFeedback() {
+            const feedbacks = JSON.parse(localStorage.getItem('f1analisi_feedbacks') || '[]');
+            const listEl = document.getElementById('feedback-list');
+            
+            if (feedbacks.length === 0) {
+                listEl.innerHTML = '<div class="feedback-empty">Nessun commento ancora. Sii il primo!</div>';
+                return;
+            }
+            
+            listEl.innerHTML = feedbacks.map(f => `
+                <div class="feedback-item">
+                    <div class="feedback-item-name">${f.name}</div>
+                    <div class="feedback-item-text">${f.text}</div>
+                    <div class="feedback-item-date">${f.date}</div>
+                </div>
+            `).join('');
+        }
+        
+        function submitFeedback() {
+            const name = document.getElementById('feedback-name').value.trim();
+            const text = document.getElementById('feedback-text').value.trim();
+            
+            if (!name || !text) {
+                alert('Per favore compila tutti i campi');
+                return;
+            }
+            
+            const feedbacks = JSON.parse(localStorage.getItem('f1analisi_feedbacks') || '[]');
+            feedbacks.unshift({
+                name: name,
+                text: text,
+                date: new Date().toLocaleDateString('it-IT')
+            });
+            
+            localStorage.setItem('f1analisi_feedbacks', JSON.stringify(feedbacks));
+            document.getElementById('feedback-name').value = '';
+            document.getElementById('feedback-text').value = '';
+            loadFeedback();
+        }
+        
+        loadFeedback();
     </script>
 </body>
 </html>
