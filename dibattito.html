@@ -152,6 +152,36 @@
             border-color: var(--rosso);
         }
 
+        .debate-input-container {
+            position: relative;
+        }
+
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(18, 18, 20, 0.98);
+            border: 1px solid var(--rosso);
+            border-top: none;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+
+        .autocomplete-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .autocomplete-item:hover {
+            background: rgba(220, 0, 0, 0.2);
+            color: var(--rosso);
+        }
+
         .debate-submit {
             width: 100%;
             background: var(--rosso);
@@ -221,6 +251,116 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        .feedback-section {
+            margin-top: 80px;
+            padding-top: 60px;
+            border-top: 1px solid rgba(220, 0, 0, 0.2);
+        }
+
+        .feedback-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .feedback-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .feedback-input {
+            background: rgba(18, 18, 20, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 15px;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.3s ease;
+        }
+
+        .feedback-input:focus {
+            outline: none;
+            border-color: var(--rosso);
+        }
+
+        .feedback-textarea {
+            background: rgba(18, 18, 20, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .feedback-textarea:focus {
+            outline: none;
+            border-color: var(--rosso);
+        }
+
+        .feedback-submit {
+            background: var(--rosso);
+            border: none;
+            color: var(--bianco);
+            padding: 15px 30px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .feedback-submit:hover {
+            background: var(--rosso-dark);
+            box-shadow: 0 0 20px rgba(220, 0, 0, 0.4);
+        }
+
+        .feedback-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .feedback-item {
+            background: rgba(18, 18, 20, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .feedback-item-name {
+            font-weight: 700;
+            color: var(--rosso);
+            margin-bottom: 5px;
+        }
+
+        .feedback-item-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .feedback-item-date {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .feedback-empty {
+            color: var(--text-muted);
+            text-align: center;
+            padding: 30px;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .feedback-container {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -240,20 +380,50 @@
         </div>
 
         <div class="debate-grid" id="debate-container"></div>
+
+        <section class="feedback-section">
+            <div class="section-header">
+                <div class="section-tag">Feedback</div>
+                <h2 class="section-title">Migliora il <span>Sito</span></h2>
+            </div>
+            
+            <div class="feedback-container">
+                <div class="feedback-form">
+                    <input type="text" id="feedback-name" class="feedback-input" placeholder="Il tuo nome">
+                    <textarea id="feedback-text" class="feedback-textarea" placeholder="Scrivi un commento o suggerimento..."></textarea>
+                    <button class="feedback-submit" onclick="submitFeedback()">Invia Feedback</button>
+                </div>
+                
+                <div class="feedback-list" id="feedback-list">
+                    <div class="feedback-empty">Nessun commento ancora. Sii il primo!</div>
+                </div>
+            </div>
+        </section>
     </div>
 
     <script>
+        // F1 2026 Drivers and Teams
+        const f1Drivers = [
+            'Max Verstappen', 'Sergio Perez', 'Charles Leclerc', 'Carlos Sainz', 
+            'Lewis Hamilton', 'George Russell', 'Lando Norris', 'Oscar Piastri',
+            'Fernando Alonso', 'Lance Stroll', 'Pierre Gasly', 'Esteban Ocon',
+            'Valtteri Bottas', 'Zhou Guanyu', 'Kevin Magnussen', 'Nico Hulkenberg',
+            'Yuki Tsunoda', 'Daniel Ricciardo', 'Alex Albon', 'Logan Sargeant'
+        ];
+        
+        const f1Teams = ['Ferrari', 'Red Bull', 'Mercedes', 'McLaren', 'Aston Martin', 'Alpine', 'Kick Sauber', 'Haas', 'RB', 'Williams'];
+        
         const questions = [
-            '1. Pilota del giorno',
-            '2. Miglior sorpasso',
-            '3. Miglior energia',
-            '4. Più fortunato',
-            '5. Più sfortunato',
-            '6. Miglior Team',
-            '7. Miglior giro di qualifica',
-            '8. Miglior salvataggio',
-            '9. Miglior battaglia',
-            '10. Pronostico prossimo GP'
+            { text: '1. Pilota del giorno', type: 'driver' },
+            { text: '2. Miglior sorpasso', type: 'driver' },
+            { text: '3. Miglior energia', type: 'driver' },
+            { text: '4. Più fortunato', type: 'driver' },
+            { text: '5. Più sfortunato', type: 'driver' },
+            { text: '6. Miglior Team', type: 'team' },
+            { text: '7. Miglior giro di qualifica', type: 'driver' },
+            { text: '8. Miglior salvataggio', type: 'driver' },
+            { text: '9. Miglior battaglia', type: 'driver' },
+            { text: '10. Pronostico prossimo GP', type: 'driver' }
         ];
 
         // Calculate weekend number
@@ -270,8 +440,11 @@
             const card = document.createElement('div');
             card.className = 'debate-card';
             card.innerHTML = `
-                <div class="debate-question">${q}</div>
-                <input type="text" class="debate-input" id="input-${i}" placeholder="Scrivi il nome...">
+                <div class="debate-question">${q.text}</div>
+                <div class="debate-input-container">
+                    <input type="text" class="debate-input" id="input-${i}" placeholder="Scrivi il nome..." data-type="${q.type}" data-index="${i}">
+                    <div class="autocomplete-dropdown" id="dropdown-${i}"></div>
+                </div>
                 <button class="debate-submit" onclick="vote(${i})">Vota</button>
                 <div class="debate-results" id="results-${i}"></div>
             `;
@@ -279,7 +452,47 @@
             showResults(i);
         });
 
-        function vote(index) {
+        // Autocomplete functionality
+        document.querySelectorAll('.debate-input').forEach(input => {
+            input.addEventListener('input', function() {
+                const value = this.value.toLowerCase();
+                const type = this.dataset.type;
+                const index = this.dataset.index;
+                const dropdown = document.getElementById(`dropdown-${index}`);
+                
+                if (value.length < 2) {
+                    dropdown.style.display = 'none';
+                    return;
+                }
+                
+                const suggestions = type === 'team' 
+                    ? f1Teams.filter(t => t.toLowerCase().includes(value))
+                    : f1Drivers.filter(d => d.toLowerCase().includes(value));
+                
+                if (suggestions.length > 0) {
+                    dropdown.innerHTML = suggestions.slice(0, 5).map(s => 
+                        `<div class="autocomplete-item" onclick="selectSuggestion(${index}, '${s}')">${s}</div>`
+                    ).join('');
+                    dropdown.style.display = 'block';
+                } else {
+                    dropdown.style.display = 'none';
+                }
+            });
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.classList.contains('debate-input')) {
+                document.querySelectorAll('.autocomplete-dropdown').forEach(d => d.style.display = 'none');
+            }
+        });
+
+        window.selectSuggestion = function(index, name) {
+            document.getElementById(`input-${index}`).value = name;
+            document.getElementById(`dropdown-${index}`).style.display = 'none';
+        };
+
+        window.vote = function(index) {
             const input = document.getElementById(`input-${index}`);
             const value = input.value.trim();
             
@@ -295,7 +508,7 @@
             
             input.value = '';
             showResults(index);
-        }
+        };
 
         function showResults(index) {
             const key = storagePrefix + index;
@@ -314,6 +527,49 @@
                 `).join('');
             }
         }
+
+        // Feedback system
+        function loadFeedback() {
+            const feedbacks = JSON.parse(localStorage.getItem('dibattito_feedbacks') || '[]');
+            const listEl = document.getElementById('feedback-list');
+            
+            if (feedbacks.length === 0) {
+                listEl.innerHTML = '<div class="feedback-empty">Nessun commento ancora. Sii il primo!</div>';
+                return;
+            }
+            
+            listEl.innerHTML = feedbacks.map(f => `
+                <div class="feedback-item">
+                    <div class="feedback-item-name">${f.name}</div>
+                    <div class="feedback-item-text">${f.text}</div>
+                    <div class="feedback-item-date">${f.date}</div>
+                </div>
+            `).join('');
+        }
+
+        window.submitFeedback = function() {
+            const name = document.getElementById('feedback-name').value.trim();
+            const text = document.getElementById('feedback-text').value.trim();
+            
+            if (!name || !text) {
+                alert('Per favore compila tutti i campi');
+                return;
+            }
+            
+            const feedbacks = JSON.parse(localStorage.getItem('dibattito_feedbacks') || '[]');
+            feedbacks.unshift({
+                name: name,
+                text: text,
+                date: new Date().toLocaleDateString('it-IT')
+            });
+            
+            localStorage.setItem('dibattito_feedbacks', JSON.stringify(feedbacks));
+            document.getElementById('feedback-name').value = '';
+            document.getElementById('feedback-text').value = '';
+            loadFeedback();
+        };
+
+        loadFeedback();
     </script>
 </body>
 </html>
