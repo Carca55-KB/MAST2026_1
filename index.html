@@ -2236,7 +2236,7 @@
                     
                     if (child.material) {
                         const mat = child.material;
-                        const isWheel = isWheelByName || (isCylindrical && isAtWheelPosition);
+                        const isWheel = (isWheelByName || (isWheelSized && isAtWheelPosition)) && !isBrakeDuct;
                         
                         if (!isWheel && (mat.isMeshStandardMaterial || mat.isMeshPhysicalMaterial)) {
                             mat.metalness = 0;
