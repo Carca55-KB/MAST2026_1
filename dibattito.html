@@ -530,7 +530,7 @@
             { text: '6. Miglior Team', type: 'team' },
             { text: '7. Miglior giro di qualifica', type: 'driver' },
             { text: '8. Miglior salvataggio', type: 'driver' },
-            { text: '9. Miglior battaglia', type: 'driver' },
+            { text: '9. Miglior battaglia', type: 'battle' },
             { text: `10. Pronostico vittoria ${nextGPName} GP`, type: 'driver' }
         ];
 
@@ -634,15 +634,35 @@
         questions.forEach((q, i) => {
             const card = document.createElement('div');
             card.className = 'debate-card';
-            card.innerHTML = `
-                <div class="debate-question">${q.text}</div>
-                <div class="debate-input-container">
-                    <input type="text" class="debate-input" id="input-${i}" placeholder="Scrivi il nome..." data-type="${q.type}" data-index="${i}">
-                    <div class="autocomplete-dropdown" id="dropdown-${i}"></div>
-                </div>
-                <button class="debate-submit" onclick="vote(${i})">Vota</button>
-                <div class="debate-results" id="results-${i}"></div>
-            `;
+            
+            if (q.type === 'battle') {
+                card.innerHTML = `
+                    <div class="debate-question">${q.text}</div>
+                    <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+                        <div class="debate-input-container" style="flex: 1;">
+                            <input type="text" class="debate-input" id="input-${i}-1" placeholder="Pilota 1..." data-type="driver" data-index="${i}-1">
+                            <div class="autocomplete-dropdown" id="dropdown-${i}-1"></div>
+                        </div>
+                        <span style="color: var(--rosso); font-weight: 700; font-size: 1.2rem;">vs</span>
+                        <div class="debate-input-container" style="flex: 1;">
+                            <input type="text" class="debate-input" id="input-${i}-2" placeholder="Pilota 2..." data-type="driver" data-index="${i}-2">
+                            <div class="autocomplete-dropdown" id="dropdown-${i}-2"></div>
+                        </div>
+                    </div>
+                    <button class="debate-submit" onclick="voteBattle(${i})">Vota</button>
+                    <div class="debate-results" id="results-${i}"></div>
+                `;
+            } else {
+                card.innerHTML = `
+                    <div class="debate-question">${q.text}</div>
+                    <div class="debate-input-container">
+                        <input type="text" class="debate-input" id="input-${i}" placeholder="Scrivi il nome..." data-type="${q.type}" data-index="${i}">
+                        <div class="autocomplete-dropdown" id="dropdown-${i}"></div>
+                    </div>
+                    <button class="debate-submit" onclick="vote(${i})">Vota</button>
+                    <div class="debate-results" id="results-${i}"></div>
+                `;
+            }
             container.appendChild(card);
             showResults(i);
         });
@@ -742,6 +762,34 @@
             localStorage.setItem(key, JSON.stringify(votes));
             
             input.value = '';
+            showResults(index);
+        };
+
+        window.voteBattle = function(index) {
+            const now = new Date();
+            if (!votingStart || now < votingStart || now > votingEnd) {
+                alert('Le votazioni sono chiuse!');
+                return;
+            }
+            
+            const input1 = document.getElementById(`input-${index}-1`);
+            const input2 = document.getElementById(`input-${index}-2`);
+            const value1 = input1.value.trim();
+            const value2 = input2.value.trim();
+            
+            if (!value1 || !value2) {
+                alert('Inserisci entrambi i piloti!');
+                return;
+            }
+
+            const battleName = `${value1} vs ${value2}`;
+            const key = storagePrefix + index;
+            const votes = JSON.parse(localStorage.getItem(key) || '{}');
+            votes[battleName] = (votes[battleName] || 0) + 1;
+            localStorage.setItem(key, JSON.stringify(votes));
+            
+            input1.value = '';
+            input2.value = '';
             showResults(index);
         };
 
