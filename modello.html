@@ -1138,6 +1138,28 @@
             highlightedMeshes = [];
         }
         
+        function getComponentFromPosition(point) {
+            if (point.z < -1.5 && point.y > 0.65) return 'ala posteriore';
+            if (point.z < -1.8 && point.y > 0.4 && point.y < 0.65) return 'beam wing';
+            if (point.z < -1.5 && point.y < 0.4 && point.y > -0.1) return 'diffusore';
+            if (point.z > 1.5 && point.y < 0.5) return 'ala anteriore';
+            if (point.z > 2 && point.y > 0.15 && point.y < 0.65) return 'naso';
+            if (point.y > 0.7 && point.z > -0.5 && point.z < 0.5 && Math.abs(point.x) < 0.3) return 'airbox';
+            if (point.y > 0.5 && point.y < 0.85 && point.z > -0.3 && point.z < 0.8 && Math.abs(point.x) < 0.4) return 'halo';
+            if (point.y > 0.1 && point.y < 0.4) {
+                if (point.z > 1.2 && point.z < 2.2 && Math.abs(point.x) > 0.5 && Math.abs(point.x) < 0.9) return 'cestelli freni';
+                if (point.z < -1.2 && point.z > -2.2 && Math.abs(point.x) > 0.5 && Math.abs(point.x) < 0.9) return 'cestelli freni';
+            }
+            if (point.z > 0.5 && point.z < 2.5 && point.y > 0.15 && point.y < 0.55 && Math.abs(point.x) > 0.5 && Math.abs(point.x) < 0.7) return 'sospensioni anteriori';
+            if (point.z < -0.5 && point.z > -2.5 && point.y > 0.15 && point.y < 0.55 && Math.abs(point.x) > 0.5 && Math.abs(point.x) < 0.7) return 'sospensioni posteriori';
+            if (point.y < 0.2 && point.y > -0.1 && Math.abs(point.x) > 0.4 && Math.abs(point.x) < 0.9 && Math.abs(point.z) < 2) return 'floor boards';
+            if (point.y < 0.15 && point.y > -0.15 && Math.abs(point.x) < 0.5 && Math.abs(point.z) < 2.5) return 'fondo';
+            if (Math.abs(point.x) > 0.25 && point.z > -1.5 && point.z < 1.5 && point.y > 0.15 && point.y < 0.75) return 'sidepods';
+            if (point.y > 0.2 && Math.abs(point.x) < 0.3 && point.z > -0.8 && point.z < 1) return 'power unit';
+            if (point.y < 0.4 && Math.abs(point.x) > 0.6 && Math.abs(point.x) < 1 && (point.z > 1.5 || point.z < -1.5)) return 'gomme';
+            return null;
+        }
+        
         function highlightComponent(componentName) {
             resetHighlight();
             
@@ -1150,6 +1172,7 @@
                     const meshName = (child.name || child.parent?.name || '').toLowerCase();
                     let matches = false;
                     
+                    // Try name matching first
                     const n = meshName;
                     if (componentName === 'ala anteriore' && (n.includes('wing') && (n.includes('front') || n.includes('anteriore')))) matches = true;
                     if (componentName === 'ala posteriore' && (n.includes('wing') && (n.includes('rear') || n.includes('posteriore')))) matches = true;
@@ -1164,12 +1187,28 @@
                     if (componentName === 'cestelli freni' && (n.includes('brake') || n.includes('freno') || n.includes('duct'))) matches = true;
                     if (componentName === 'gomme' && (n.includes('wheel') || n.includes('tire') || n.includes('tyre') || n.includes('rim') || n.includes('rubber'))) matches = true;
                     if (componentName === 'power unit' && (n.includes('engine') || n.includes('motor') || n.includes('power') || n.includes('cover'))) matches = true;
+                    if (componentName === 'sospensioni anteriori' && (n.includes('suspension') || n.includes('arm') || n.includes('wishbone') || n.includes('rod'))) matches = true;
+                    if (componentName === 'sospensioni posteriori' && (n.includes('suspension') || n.includes('arm') || n.includes('wishbone') || n.includes('rod'))) matches = true;
+                    
+                    // If no name match, use position-based matching
+                    if (!matches) {
+                        child.geometry.computeBoundingBox();
+                        const box = child.geometry.boundingBox.clone();
+                        box.applyMatrix4(child.matrixWorld);
+                        const center = new THREE.Vector3();
+                        box.getCenter(center);
+                        const detectedComponent = getComponentFromPosition(center);
+                        if (detectedComponent === componentName) {
+                            matches = true;
+                        }
+                    }
                     
                     if (matches) {
                         if (child.material.emissive) {
                             child.material.emissive.copy(highlightColor);
                             child.material.emissiveIntensity = 0.5;
                         }
+                        child.material.color = child.material.color.clone();
                         child.material.color.copy(highlightColor);
                         child.material.needsUpdate = true;
                         highlightedMeshes.push(child);
