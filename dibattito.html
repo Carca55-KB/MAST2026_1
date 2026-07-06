@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dibattito F1 - Weekend</title>
+    <title>Dibattito F1 - Weekend GP</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         * {
@@ -376,7 +377,8 @@
     <div class="container">
         <div class="section-header">
             <div class="section-tag">Community</div>
-            <h1 class="section-title">Dibattito F1 <span class="weekend-badge" id="weekend-badge">Weekend #1</span></h1>
+            <h1 class="section-title">Vota il <span>Weekend GP</span></h1>
+            <p style="color: var(--text-secondary); margin-top: 15px; font-size: 1.1rem;">Esprimi le tue preferenze per ogni categoria del weekend!</p>
         </div>
 
         <div class="debate-grid" id="debate-container"></div>
@@ -431,7 +433,6 @@
         const now = new Date();
         const daysDiff = Math.floor((now - seasonStart) / (1000 * 60 * 60 * 24));
         const weekendNumber = Math.min(24, Math.max(1, Math.ceil(daysDiff / 7)));
-        document.getElementById('weekend-badge').textContent = `Weekend #${weekendNumber}`;
 
         const container = document.getElementById('debate-container');
         const storagePrefix = `debate_w${weekendNumber}_`;
