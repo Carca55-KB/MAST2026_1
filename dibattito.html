@@ -86,6 +86,39 @@
             padding: 120px 40px 80px;
         }
 
+        .deadline-banner {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            background: linear-gradient(135deg, rgba(220, 0, 0, 0.9) 0%, rgba(180, 0, 0, 0.9) 100%);
+            padding: 15px 25px;
+            border-radius: 0;
+            z-index: 999;
+            box-shadow: 0 5px 20px rgba(220, 0, 0, 0.4);
+            max-width: 280px;
+        }
+
+        .deadline-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 5px;
+        }
+
+        .deadline-timer {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--bianco);
+            font-family: 'Courier New', monospace;
+        }
+
+        .deadline-expired {
+            color: #ff6b6b;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
         .section-header {
             margin-bottom: 50px;
             text-align: center;
@@ -374,6 +407,11 @@
         </ul>
     </nav>
 
+    <div class="deadline-banner" id="deadline-banner">
+        <div class="deadline-label">⏰ Tempo rimanente per votare</div>
+        <div class="deadline-timer" id="deadline-timer">--:--:--</div>
+    </div>
+
     <div class="container">
         <div class="section-header">
             <div class="section-tag">Community</div>
@@ -404,16 +442,25 @@
     </div>
 
     <script>
-        // F1 2026 Drivers and Teams
+        // F1 2026 Drivers and Teams (Updated)
         const f1Drivers = [
-            'Max Verstappen', 'Sergio Perez', 'Charles Leclerc', 'Carlos Sainz', 
-            'Lewis Hamilton', 'George Russell', 'Lando Norris', 'Oscar Piastri',
-            'Fernando Alonso', 'Lance Stroll', 'Pierre Gasly', 'Esteban Ocon',
-            'Valtteri Bottas', 'Zhou Guanyu', 'Kevin Magnussen', 'Nico Hulkenberg',
-            'Yuki Tsunoda', 'Daniel Ricciardo', 'Alex Albon', 'Logan Sargeant'
+            'Max Verstappen', 'Liam Lawson',
+            'Charles Leclerc', 'Lewis Hamilton',
+            'Lando Norris', 'Oscar Piastri',
+            'George Russell', 'Kimi Antonelli',
+            'Fernando Alonso', 'Lance Stroll',
+            'Pierre Gasly', 'Jack Doohan',
+            'Carlos Sainz', 'Alex Albon',
+            'Yuki Tsunoda', 'Isack Hadjar',
+            'Nico Hulkenberg', 'Esteban Ocon',
+            'Gabriel Bortoleto', 'Nikita Mazepin'
         ];
         
-        const f1Teams = ['Ferrari', 'Red Bull', 'Mercedes', 'McLaren', 'Aston Martin', 'Alpine', 'Kick Sauber', 'Haas', 'RB', 'Williams'];
+        const f1Teams = [
+            'Ferrari', 'Red Bull', 'McLaren', 'Mercedes',
+            'Aston Martin', 'Alpine', 'Williams', 'RB',
+            'Kick Sauber', 'Haas'
+        ];
         
         const questions = [
             { text: '1. Pilota del giorno', type: 'driver' },
@@ -428,14 +475,53 @@
             { text: '10. Pronostico prossimo GP', type: 'driver' }
         ];
 
-        // Calculate weekend number
-        const seasonStart = new Date('2026-03-01');
+        // Calculate weekend number and deadline
+        const seasonStart = new Date('2026-03-06T00:00:00Z'); // First GP weekend
         const now = new Date();
         const daysDiff = Math.floor((now - seasonStart) / (1000 * 60 * 60 * 24));
-        const weekendNumber = Math.min(24, Math.max(1, Math.ceil(daysDiff / 7)));
-
+        const weekendNumber = Math.min(24, Math.max(1, Math.ceil((daysDiff + 5) / 7)));
+        
+        // Calculate deadline: 3 days after Sunday (Wednesday 23:59:59)
+        const weekStart = new Date(seasonStart);
+        weekStart.setDate(weekStart.getDate() + (weekendNumber - 1) * 7);
+        const deadline = new Date(weekStart);
+        deadline.setDate(deadline.getDate() + 9); // Sunday + 3 days = Wednesday
+        deadline.setHours(23, 59, 59, 999);
+        
         const container = document.getElementById('debate-container');
         const storagePrefix = `debate_w${weekendNumber}_`;
+        
+        // Countdown timer
+        function updateCountdown() {
+            const now = new Date();
+            const diff = deadline - now;
+            
+            if (diff <= 0) {
+                document.getElementById('deadline-timer').innerHTML = '<span class="deadline-expired">⏰ Votazioni chiuse!</span>';
+                document.querySelectorAll('.debate-submit').forEach(btn => {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                    btn.style.cursor = 'not-allowed';
+                });
+                return;
+            }
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            if (days > 0) {
+                document.getElementById('deadline-timer').textContent = 
+                    `${days}g ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            } else {
+                document.getElementById('deadline-timer').textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+        
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
 
         questions.forEach((q, i) => {
             const card = document.createElement('div');
