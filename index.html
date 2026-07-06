@@ -2267,15 +2267,11 @@
             labelRenderer.setSize(container.clientWidth, container.clientHeight);
         });
         
-        // View counter
-        fetch('https://api.countapi.xyz/hit/f1analisi/visits')
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('view-count').textContent = data.value.toLocaleString();
-            })
-            .catch(() => {
-                document.getElementById('view-count').textContent = '—';
-            });
+        // View counter with localStorage
+        let views = localStorage.getItem('f1analisi_views') || 0;
+        views = parseInt(views) + 1;
+        localStorage.setItem('f1analisi_views', views);
+        document.getElementById('view-count').textContent = views.toLocaleString();
     </script>
 </body>
 </html>
