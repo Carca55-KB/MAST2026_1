@@ -2218,14 +2218,18 @@
                     // Check if it's a wheel by name
                     const isWheelByName = meshName.includes('wheel') || meshName.includes('tire') || meshName.includes('tyre') || meshName.includes('rim') || meshName.includes('rubber') || meshName.includes('ruota') || meshName.includes('gomma');
                     
-                    // Check if it's a wheel by size (roughly cylindrical and at wheel positions)
-                    const isCylindrical = (bsize.y > 0.2 && bsize.y < 0.6 && bsize.x > 0.2 && bsize.x < 0.6);
+                    // Exclude brake ducts/cestelli (smaller, inner parts)
+                    const isBrakeDuct = meshName.includes('brake') || meshName.includes('duct') || meshName.includes('cestell') || meshName.includes('fren');
+                    
+                    // Check if it's a wheel by size (wheels are larger, c. 0.35m diameter, positioned further out)
+                    const isWheelSized = (bsize.y > 0.3 && bsize.y < 0.5 && bsize.x > 0.25 && bsize.x < 0.5 && bsize.z > 0.25 && bsize.z < 0.5);
                     const isAtWheelPosition = (
                         (Math.abs(Math.abs(worldPos.x) - 0.85) < 0.25 && Math.abs(Math.abs(worldPos.z) - 1.8) < 0.4) ||
                         (Math.abs(Math.abs(worldPos.x) - 0.75) < 0.25 && Math.abs(Math.abs(worldPos.z) - 1.6) < 0.4)
                     );
                     
-                    if (isWheelByName || (isCylindrical && isAtWheelPosition)) {
+                    // Only add if it's a wheel and NOT a brake duct
+                    if ((isWheelByName || (isWheelSized && isAtWheelPosition)) && !isBrakeDuct) {
                         wheelMeshes.push(child);
                         console.log('✓ Found wheel:', child.name);
                     }
