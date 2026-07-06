@@ -2299,10 +2299,10 @@
                 s.line.material.opacity = 0.1 + Math.sin(time * 1.5 + i * 0.3) * 0.03;
             });
             
-            // Rotate wheels
+            // Rotate wheels - faster rotation for moving effect
             if (wheelMeshes.length > 0) {
                 wheelMeshes.forEach(wheel => {
-                    wheel.rotation.x += 0.03;
+                    wheel.rotation.x += 0.15;
                 });
             }
             
@@ -2321,15 +2321,50 @@
         // Find wheel meshes after model loads
         setTimeout(() => {
             if (carModel) {
+                // Log all mesh names to console for debugging
+                console.log('=== All mesh names in model ===');
+                carModel.traverse(function(child) {
+                    if (child.isMesh) {
+                        console.log('Mesh:', child.name, 'Position:', child.position);
+                    }
+                });
+                
+                // Find wheels by position (approximate wheel positions)
                 carModel.traverse(function(child) {
                     if (child.isMesh) {
                         const name = child.name.toLowerCase();
-                        if (name.includes('wheel') || name.includes('tire') || name.includes('tyre') || name.includes('rim')) {
+                        const pos = new THREE.Vector3();
+                        child.getWorldPosition(pos);
+                        
+                        // Check if mesh is near wheel positions (x ~= ±0.85, z ~= ±1.8)
+                        const isWheelByName = name.includes('wheel') || name.includes('tire') || name.includes('tyre') || name.includes('rim') || name.includes('rubber');
+                        const isWheelByPos = (Math.abs(Math.abs(pos.x) - 0.85) < 0.3 && Math.abs(Math.abs(pos.z) - 1.8) < 0.5);
+                        
+                        if (isWheelByName || isWheelByPos) {
                             wheelMeshes.push(child);
-                            console.log('Found wheel:', child.name);
+                            console.log('Found wheel:', child.name, 'at', pos);
                         }
                     }
                 });
+                
+                // If still no wheels found, find all circular/cylindrical meshes
+                if (wheelMeshes.length === 0) {
+                    console.log('No wheels found by name/position, trying geometry...');
+                    carModel.traverse(function(child) {
+                        if (child.isMesh && child.geometry) {
+                            const geo = child.geometry;
+                            if (geo.attributes.position) {
+                                const box = new THREE.Box3().setFromObject(child);
+                                const size = box.getSize(new THREE.Vector3());
+                                // Wheels are roughly cylindrical (width ~= diameter ~= 0.35m)
+                                if (size.y > 0.25 && size.y < 0.5 && size.x > 0.25 && size.x < 0.5) {
+                                    wheelMeshes.push(child);
+                                    console.log('Found potential wheel by size:', child.name, 'size:', size);
+                                }
+                            }
+                        }
+                    });
+                }
             }
         }, 2000);
         
