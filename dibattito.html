@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dibattito F1 - Weekend</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --rosso: #dc0000;
+            --rosso-dark: #b30000;
+            --azzurro: #00a3e0;
+            --bianco: #ffffff;
+            --bg-dark: #0b0b0c;
+            --bg-card: #121214;
+            --text-primary: #ffffff;
+            --text-secondary: #8c8c92;
+            --text-muted: #4a4a4f;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg-dark);
+            background: linear-gradient(135deg, #0b0b0c 0%, #1a0505 25%, #0b0b0c 50%, #0d0000 75%, #0b0b0c 100%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(11, 11, 12, 0.95), transparent);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .logo span {
+            color: var(--rosso);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--rosso);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 120px 40px 80px;
+        }
+
+        .section-header {
+            margin-bottom: 50px;
+            text-align: center;
+        }
+
+        .section-tag {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--rosso);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .section-title {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+        }
+
+        .section-title span {
+            color: var(--rosso);
+        }
+
+        .debate-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+
+        .debate-card {
+            background: linear-gradient(145deg, rgba(18, 18, 20, 0.9) 0%, rgba(26, 5, 5, 0.8) 100%);
+            border: 1px solid rgba(220, 0, 0, 0.2);
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .debate-card:hover {
+            border-color: rgba(220, 0, 0, 0.4);
+            transform: translateY(-5px);
+        }
+
+        .debate-question {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .debate-input {
+            width: 100%;
+            background: rgba(18, 18, 20, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 15px;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .debate-input:focus {
+            outline: none;
+            border-color: var(--rosso);
+        }
+
+        .debate-submit {
+            width: 100%;
+            background: var(--rosso);
+            border: none;
+            color: var(--bianco);
+            padding: 12px 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .debate-submit:hover {
+            background: var(--rosso-dark);
+            box-shadow: 0 0 20px rgba(220, 0, 0, 0.4);
+        }
+
+        .debate-results {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.85rem;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+        }
+
+        .result-name {
+            color: var(--text-primary);
+        }
+
+        .result-count {
+            color: var(--rosso);
+            font-weight: 600;
+        }
+
+        .weekend-badge {
+            display: inline-block;
+            background: var(--rosso);
+            color: var(--bianco);
+            padding: 8px 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-left: 15px;
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                padding: 15px 20px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .container {
+                padding: 100px 20px 60px;
+            }
+
+            .debate-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">F1<span>.</span>Analisi</div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#model">3D Model</a></li>
+            <li><a href="index.html#feedback">Feedback</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="section-header">
+            <div class="section-tag">Community</div>
+            <h1 class="section-title">Dibattito F1 <span class="weekend-badge" id="weekend-badge">Weekend #1</span></h1>
+        </div>
+
+        <div class="debate-grid" id="debate-container"></div>
+    </div>
+
+    <script>
+        const questions = [
+            '1. Pilota del giorno',
+            '2. Miglior sorpasso',
+            '3. Miglior energia',
+            '4. Più fortunato',
+            '5. Più sfortunato',
+            '6. Miglior Team',
+            '7. Miglior giro di qualifica',
+            '8. Miglior salvataggio',
+            '9. Miglior battaglia',
+            '10. Pronostico prossimo GP'
+        ];
+
+        // Calculate weekend number
+        const seasonStart = new Date('2026-03-01');
+        const now = new Date();
+        const daysDiff = Math.floor((now - seasonStart) / (1000 * 60 * 60 * 24));
+        const weekendNumber = Math.min(24, Math.max(1, Math.ceil(daysDiff / 7)));
+        document.getElementById('weekend-badge').textContent = `Weekend #${weekendNumber}`;
+
+        const container = document.getElementById('debate-container');
+        const storagePrefix = `debate_w${weekendNumber}_`;
+
+        questions.forEach((q, i) => {
+            const card = document.createElement('div');
+            card.className = 'debate-card';
+            card.innerHTML = `
+                <div class="debate-question">${q}</div>
+                <input type="text" class="debate-input" id="input-${i}" placeholder="Scrivi il nome...">
+                <button class="debate-submit" onclick="vote(${i})">Vota</button>
+                <div class="debate-results" id="results-${i}"></div>
+            `;
+            container.appendChild(card);
+            showResults(i);
+        });
+
+        function vote(index) {
+            const input = document.getElementById(`input-${index}`);
+            const value = input.value.trim();
+            
+            if (!value) {
+                alert('Inserisci un nome!');
+                return;
+            }
+
+            const key = storagePrefix + index;
+            const votes = JSON.parse(localStorage.getItem(key) || '{}');
+            votes[value] = (votes[value] || 0) + 1;
+            localStorage.setItem(key, JSON.stringify(votes));
+            
+            input.value = '';
+            showResults(index);
+        }
+
+        function showResults(index) {
+            const key = storagePrefix + index;
+            const votes = JSON.parse(localStorage.getItem(key) || '{}');
+            const div = document.getElementById(`results-${index}`);
+            
+            if (Object.keys(votes).length === 0) {
+                div.innerHTML = '<span style="color: var(--text-muted);">Nessun voto ancora</span>';
+            } else {
+                const sorted = Object.entries(votes).sort((a, b) => b[1] - a[1]).slice(0, 5);
+                div.innerHTML = sorted.map(([name, count]) => `
+                    <div class="result-row">
+                        <span class="result-name">${name}</span>
+                        <span class="result-count">${count} voti</span>
+                    </div>
+                `).join('');
+            }
+        }
+    </script>
+</body>
+</html>
