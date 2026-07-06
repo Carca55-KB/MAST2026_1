@@ -463,84 +463,174 @@
             'Audi', 'Haas F1 Team', 'Cadillac'
         ];
         
+        // F1 2026 Calendar (simplified - GP name and Sunday date)
+        const f1Calendar2026 = [
+            { name: 'Bahrain', date: new Date('2026-03-08') },
+            { name: 'Arabia Saudita', date: new Date('2026-03-15') },
+            { name: 'Australia', date: new Date('2026-03-29') },
+            { name: 'Cina', date: new Date('2026-04-12') },
+            { name: 'Giappone', date: new Date('2026-04-19') },
+            { name: 'Miami', date: new Date('2026-05-03') },
+            { name: 'Emilia Romagna', date: new Date('2026-05-17') },
+            { name: 'Monaco', date: new Date('2026-05-24') },
+            { name: 'Gran Bretagna', date: new Date('2026-07-06') },
+            { name: 'Belgio', date: new Date('2026-07-19') },
+            { name: 'Ungheria', date: new Date('2026-08-02') },
+            { name: 'Olanda', date: new Date('2026-08-16') },
+            { name: 'Monza', date: new Date('2026-08-30') },
+            { name: 'Azerbaijan', date: new Date('2026-09-20') },
+            { name: 'Singapore', date: new Date('2026-10-04') },
+            { name: 'Stati Uniti', date: new Date('2026-10-18') },
+            { name: 'Messico', date: new Date('2026-10-25') },
+            { name: 'Brasile', date: new Date('2026-11-08') },
+            { name: 'Las Vegas', date: new Date('2026-11-15') },
+            { name: 'Qatar', date: new Date('2026-11-29') },
+            { name: 'Abu Dhabi', date: new Date('2026-12-06') }
+        ];
+
+        // Find current voting GP and next GP
+        const now = new Date();
+        let currentVotingGP = null;
+        let nextGP = null;
+        let votingStart = null;
+        let votingEnd = null;
+        
+        for (let i = 0; i < f1Calendar2026.length; i++) {
+            const gp = f1Calendar2026[i];
+            const gpEndDate = new Date(gp.date);
+            gpEndDate.setHours(17, 0, 0, 0);
+            
+            const windowStart = new Date(gpEndDate);
+            const windowEnd = new Date(gpEndDate);
+            windowEnd.setDate(windowEnd.getDate() + 3);
+            windowEnd.setHours(23, 59, 59, 999);
+            
+            if (now >= windowStart && now <= windowEnd) {
+                currentVotingGP = gp;
+                votingStart = windowStart;
+                votingEnd = windowEnd;
+                if (i + 1 < f1Calendar2026.length) {
+                    nextGP = f1Calendar2026[i + 1];
+                }
+                break;
+            } else if (now < windowStart) {
+                nextGP = gp;
+                break;
+            }
+        }
+        
+        const nextGPName = nextGP ? nextGP.name : 'prossimo';
+        
         const questions = [
             { text: '1. Pilota del giorno', type: 'driver' },
             { text: '2. Miglior sorpasso', type: 'driver' },
-            { text: '3. Miglior energia', type: 'driver' },
+            { text: '3. Miglior gestione energia', type: 'driver' },
             { text: '4. Più fortunato', type: 'driver' },
             { text: '5. Più sfortunato', type: 'driver' },
             { text: '6. Miglior Team', type: 'team' },
             { text: '7. Miglior giro di qualifica', type: 'driver' },
             { text: '8. Miglior salvataggio', type: 'driver' },
             { text: '9. Miglior battaglia', type: 'driver' },
-            { text: '10. Pronostico prossimo GP', type: 'driver' }
+            { text: `10. Pronostico vittoria ${nextGPName} GP`, type: 'driver' }
         ];
 
-        // Calculate weekend number and deadline
-        // British GP: July 4-6, 2026 (Weekend 9)
-        // Deadline: 3 days after Sunday = Wednesday 23:59:59
-        const now = new Date();
-        
-        // Find the most recent Sunday (race day)
-        const currentDay = now.getDay(); // 0 = Sunday
-        const daysSinceSunday = currentDay === 0 ? 0 : currentDay;
-        const lastSunday = new Date(now);
-        lastSunday.setDate(now.getDate() - daysSinceSunday);
-        lastSunday.setHours(0, 0, 0, 0);
-        
-        // Deadline is 3 days after Sunday at 23:59:59
-        const deadline = new Date(lastSunday);
-        deadline.setDate(deadline.getDate() + 3);
-        deadline.setHours(23, 59, 59, 999);
-        
-        // If we're past the deadline, use next weekend
-        if (now > deadline) {
-            const nextSunday = new Date(lastSunday);
-            nextSunday.setDate(nextSunday.getDate() + 7);
-            deadline.setDate(nextSunday.getDate() + 3);
-            deadline.setHours(23, 59, 59, 999);
-        }
-        
-        // Calculate weekend number based on season start
+        // Calculate weekend number
         const seasonStart = new Date('2026-03-06T00:00:00Z');
-        const daysDiff = Math.floor((lastSunday - seasonStart) / (1000 * 60 * 60 * 24));
-        const weekendNumber = Math.min(24, Math.max(1, Math.ceil((daysDiff + 5) / 7)));
+        let weekendNumber = 1;
+        if (currentVotingGP) {
+            const gpDate = new Date(currentVotingGP.date);
+            const daysDiff = Math.floor((gpDate - seasonStart) / (1000 * 60 * 60 * 24));
+            weekendNumber = Math.min(24, Math.max(1, Math.ceil((daysDiff + 5) / 7)));
+        }
         
         const container = document.getElementById('debate-container');
         const storagePrefix = `debate_w${weekendNumber}_`;
         
-        // Countdown timer
+        // Calculate next voting start time for countdown display
+        let nextVotingStart = null;
+        if (nextGP && !votingStart) {
+            nextVotingStart = new Date(nextGP.date);
+            nextVotingStart.setHours(17, 0, 0, 0);
+        }
+        
         function updateCountdown() {
             const now = new Date();
-            const diff = deadline - now;
+            const timerEl = document.getElementById('deadline-timer');
+            const bannerLabel = document.querySelector('.deadline-label');
             
-            if (diff <= 0) {
-                document.getElementById('deadline-timer').innerHTML = '<span class="deadline-expired">⏰ Votazioni chiuse!</span>';
-                document.querySelectorAll('.debate-submit').forEach(btn => {
-                    btn.disabled = true;
-                    btn.style.opacity = '0.5';
-                    btn.style.cursor = 'not-allowed';
-                });
-                return;
-            }
-            
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-            
-            if (days > 0) {
-                document.getElementById('deadline-timer').textContent = 
-                    `${days}g ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            if (votingStart && votingEnd) {
+                // We're in a voting window
+                if (now < votingStart) {
+                    // Shouldn't happen, but handle it
+                    const diff = votingStart - now;
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    
+                    bannerLabel.textContent = '🏁 Votazioni aprono tra';
+                    if (days > 0) {
+                        timerEl.textContent = `${days}g ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    } else {
+                        timerEl.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    }
+                    disableVoting();
+                } else if (now > votingEnd) {
+                    // Voting window passed (shouldn't happen in normal flow)
+                    bannerLabel.textContent = '⏰ Tempo scaduto';
+                    timerEl.innerHTML = '<span class="deadline-expired">Votazioni chiuse!</span>';
+                    disableVoting();
+                } else {
+                    // Voting is OPEN
+                    const diff = votingEnd - now;
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    
+                    bannerLabel.textContent = '⏰ Tempo rimanente per votare';
+                    if (days > 0) {
+                        timerEl.textContent = `${days}g ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    } else {
+                        timerEl.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    }
+                }
+            } else if (nextVotingStart) {
+                // Waiting for next GP voting window to open
+                const diff = nextVotingStart - now;
+                if (diff <= 0) {
+                    // Should be in voting window now, reload to recalculate
+                    location.reload();
+                    return;
+                }
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                bannerLabel.textContent = `🏁 Votazioni aprono tra (${nextGPName} GP)`;
+                if (days > 0) {
+                    timerEl.textContent = `${days}g ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                } else {
+                    timerEl.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+                disableVoting();
             } else {
-                document.getElementById('deadline-timer').textContent = 
-                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                // Season hasn't started or ended
+                timerEl.innerHTML = '<span class="deadline-expired">Stagione non iniziata</span>';
+                disableVoting();
             }
         }
         
-        updateCountdown();
-        setInterval(updateCountdown, 1000);
-
+        function disableVoting() {
+            document.querySelectorAll('.debate-submit').forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            });
+        }
+        
+        // Render questions first (before countdown so buttons exist)
         questions.forEach((q, i) => {
             const card = document.createElement('div');
             card.className = 'debate-card';
@@ -556,6 +646,10 @@
             container.appendChild(card);
             showResults(i);
         });
+
+        // Then start countdown
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
 
         // Autocomplete functionality
         document.querySelectorAll('.debate-input').forEach(input => {
@@ -628,6 +722,12 @@
         };
 
         window.vote = function(index) {
+            const now = new Date();
+            if (!votingStart || now < votingStart || now > votingEnd) {
+                alert('Le votazioni sono chiuse!');
+                return;
+            }
+            
             const input = document.getElementById(`input-${index}`);
             const value = input.value.trim();
             
