@@ -2314,12 +2314,12 @@
                 s.line.material.opacity = 0.1 + Math.sin(time * 1.5 + i * 0.3) * 0.03;
             });
             
-            // Rotate wheels - faster rotation for moving effect
-            if (wheelMeshes.length > 0) {
-                wheelMeshes.forEach(wheel => {
-                    wheel.rotation.x += 0.15;
-                });
-            }
+            // Rotate wheels - disabled for now
+            // if (wheelMeshes.length > 0) {
+            //     wheelMeshes.forEach(wheel => {
+            //         wheel.rotation.x += 0.15;
+            //     });
+            // }
             
             // Subtle spotlight breathing effect
             spotlights.forEach((s, i) => {
