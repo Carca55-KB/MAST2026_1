@@ -789,59 +789,6 @@
             font-weight: 600;
         }
 
-        .stats-section {
-            padding: 80px 40px;
-            background: linear-gradient(180deg, rgba(18, 18, 20, 0.5) 0%, rgba(26, 5, 5, 0.8) 50%, rgba(18, 18, 20, 0.5) 100%);
-            position: relative;
-        }
-
-        .stats-section::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(ellipse at 50% 50%, rgba(220, 0, 0, 0.08) 0%, transparent 60%);
-            pointer-events: none;
-        }
-
-        .stats-grid {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 40px;
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 3.5rem;
-            font-weight: 900;
-            color: var(--rosso);
-            line-height: 1;
-            margin-bottom: 10px;
-        }
-
-        .stat-item:nth-child(2) .stat-number {
-            color: var(--azzurro);
-        }
-
-        .stat-item:nth-child(3) .stat-number {
-            color: var(--bianco);
-        }
-
-        .stat-item:nth-child(4) .stat-number {
-            color: var(--rosso);
-        }
-
-        .stat-label {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: var(--text-secondary);
-        }
-
         footer {
             padding: 80px 40px;
             border-top: 1px solid rgba(220, 0, 0, 0.1);
@@ -1167,10 +1114,6 @@
             .tab-btn::before {
                 display: none;
             }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
         }
 
         @media (max-width: 768px) {
@@ -1212,15 +1155,6 @@
                 height: 350px;
             }
 
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 30px;
-            }
-
-            .stat-number {
-                font-size: 2.5rem;
-            }
-
             footer {
                 padding: 40px 20px;
             }
@@ -1241,7 +1175,6 @@
         <ul class="nav-links">
             <li><a href="#components">Componenti</a></li>
             <li><a href="#model">3D Model</a></li>
-            <li><a href="#stats">Statistiche</a></li>
             <li><a href="dibattito.html">Dibattito F1</a></li>
             <li><a href="#feedback">Feedback</a></li>
         </ul>
@@ -1464,27 +1397,6 @@
         <div class="tooltip-specs" id="tooltip-specs"></div>
     </div>
 
-    <section class="stats-section" id="stats">
-        <div class="stats-grid">
-            <div class="stat-item">
-                <div class="stat-number">1000+</div>
-                <div class="stat-label">Cavalli</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">350</div>
-                <div class="stat-label">Km/h Max</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">5G</div>
-                <div class="stat-label">In Curva</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">798</div>
-                <div class="stat-label">Kg Peso</div>
-            </div>
-        </div>
-    </section>
-
     <section class="section" id="community">
         <div class="section-header">
             <div class="section-tag">Community</div>
@@ -1588,7 +1500,7 @@
             });
         }, observerOptions);
 
-        document.querySelectorAll('.component-card, .stat-item').forEach(el => {
+        document.querySelectorAll('.component-card').forEach(el => {
             el.style.opacity = '0';
             el.style.transform = 'translateY(30px)';
             el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
