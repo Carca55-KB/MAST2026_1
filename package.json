@@ -1,0 +1,15 @@
+{
+  "name": "mast2026-f1-site",
+  "version": "1.0.0",
+  "description": "F1 Analisi - Sito con modello 3D",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -386,6 +386,44 @@
             margin-bottom: 40px;
         }
 
+        .hero-title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .hero-title-wrapper .hero-title {
+            margin-bottom: 0;
+        }
+
+        .ferrari-logo {
+            width: 400px;
+            height: 455px;
+            transform: rotate(12deg);
+            opacity: 0.75;
+            filter: drop-shadow(0 0 40px rgba(220, 0, 0, 0.7));
+            animation: logoFloat 4s ease-in-out infinite;
+            margin-left: 60px;
+            mix-blend-mode: multiply;
+        }
+
+        .ferrari-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .ferrari-logo svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: rotate(12deg) translateY(0); }
+            50% { transform: rotate(12deg) translateY(-8px); }
+        }
+
         .hero-title .outline {
             color: transparent;
             -webkit-text-stroke: 1.5px var(--text-primary);
@@ -971,10 +1009,15 @@
         <div class="hero-bg"></div>
         <div class="hero-content">
             <div class="hero-tag">Monoposto Tech Lab</div>
-            <h1 class="hero-title">
-                <span class="outline">Engineering</span>
-                <span class="highlight">the Speed</span>
-            </h1>
+            <div class="hero-title-wrapper">
+                <h1 class="hero-title">
+                    <span class="outline">Engineering</span>
+                    <span class="highlight">the Speed</span>
+                </h1>
+                <div class="ferrari-logo">
+                    <img src="ferrari-logo.png" alt="Ferrari" style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+            </div>
             <p class="hero-subtitle">L'analisi millimetrica dei componenti che definiscono il limite tra la vittoria e il secondo posto in Formula 1.</p>
             <a href="#components" class="hero-cta">
                 Esplora i Componenti
@@ -1442,70 +1485,273 @@
         ring.position.y = 0.01;
         scene.add(ring);
         
-        // Aerodynamic streamlines
+        // Aerodynamic streamlines with proper collision avoidance
         function createAeroStreamline(startX, startY, color) {
             const points = [];
-            const segments = 80;
+            const segments = 150;
+            
+            // Minimum clearance from car surface
+            const clearance = 0.005;
+            
+            // Wheel positions with larger effective radius for airflow
+            const wheels = [
+                { x: 0.85, z: 1.8, radius: 0.38, yBase: 0 },
+                { x: -0.85, z: 1.8, radius: 0.38, yBase: 0 },
+                { x: 0.85, z: -1.8, radius: 0.38, yBase: 0 },
+                { x: -0.85, z: -1.8, radius: 0.38, yBase: 0 }
+            ];
+            
+            // Car body profile - defines where air CANNOT go
+            function getCarMaxX(z, y) {
+                // Nose cone (front)
+                if (z > 3.0) {
+                    const noseTaper = Math.max(0, (z - 3.0) / 0.8);
+                    return 0.15 * (1 - noseTaper) + clearance;
+                }
+                // Front wing area
+                if (z > 2.0 && z <= 3.0) {
+                    if (y < 0.3) return 1.0 + clearance; // Front wing span
+                    return 0.2 + clearance;
+                }
+                // Front section to cockpit
+                if (z > 0.5 && z <= 2.0) {
+                    return 0.55 + clearance;
+                }
+                // Cockpit/sidepod area
+                if (z > -1.0 && z <= 0.5) {
+                    if (y > 0.4) return 0.4 + clearance; // Cockpit narrower above
+                    return 0.7 + clearance; // Sidepods
+                }
+                // Engine cover
+                if (z > -2.5 && z <= -1.0) {
+                    return 0.5 + clearance;
+                }
+                // Rear section
+                if (z > -3.5 && z <= -2.5) {
+                    return 0.45 + clearance;
+                }
+                return clearance;
+            }
+            
+            function getCarMaxY(z, x) {
+                // Front wing
+                if (z > 2.0 && z <= 3.2 && Math.abs(x) < 1.0) {
+                    return 0.25 + clearance;
+                }
+                // Nose
+                if (z > 2.5 && z <= 3.5 && Math.abs(x) < 0.25) {
+                    return 0.5 + clearance;
+                }
+                // Main body
+                if (z > -2.5 && z <= 2.5 && Math.abs(x) < 0.7) {
+                    if (z > 0 && z < 1.5 && Math.abs(x) < 0.4) {
+                        return 0.65 + clearance; // Cockpit area
+                    }
+                    return 0.55 + clearance;
+                }
+                // Rear wing
+                if (z > -3.8 && z <= -2.5 && Math.abs(x) < 0.6) {
+                    return 0.95 + clearance;
+                }
+                return clearance;
+            }
+            
+            let currentX = startX;
+            let currentY = startY;
+            let velocityX = 0;
+            let velocityY = 0;
             
             for (let i = 0; i <= segments; i++) {
                 const t = i / segments;
                 const z = 8 - t * 16;
                 
-                let x = startX;
-                let y = startY;
+                // === STEP 1: Apply aerodynamic forces ===
                 
-                // Simulate flow around car body
-                if (z < 3 && z > -4) {
-                    const factor = Math.sin((z - 3) / 7 * Math.PI);
-                    
-                    // Deflect around body
-                    if (startX > -0.8 && startX < 0.8) {
-                        x += (startX > 0 ? 1 : -1) * factor * 0.8 * (1 - Math.abs(startX));
-                    }
-                    
-                    // Ground effect - flow accelerates under car
-                    if (startY < 0.5 && z < 2 && z > -2) {
-                        y *= 0.6;
-                    }
-                    
-                    // Flow over body
-                    if (startY > 0.4 && startY < 1.2 && z < 2 && z > -1) {
-                        y += factor * 0.3;
+                // Attraction towards car center (Coanda effect)
+                if (z > -3.0 && z < 3.5) {
+                    const attractStrength = 0.003;
+                    velocityX += -currentX * attractStrength * 0.15;
+                }
+                
+                // Front wing - split flow
+                if (z > 2.0 && z < 3.5 && currentY < 0.4) {
+                    if (Math.abs(currentX) > 0.5) {
+                        // Outer flow - pushed outward and up
+                        velocityX += (currentX > 0 ? 0.008 : -0.008);
+                        velocityY += 0.004;
+                    } else {
+                        // Inner flow - directed down for ground effect
+                        velocityY -= 0.003;
                     }
                 }
                 
-                // Wake turbulence behind car
-                if (z < -3) {
-                    const wakeFactor = Math.sin((-z - 3) / 5 * Math.PI);
-                    x += Math.sin(t * 15 + startX * 3) * wakeFactor * 0.3;
-                    y += Math.cos(t * 12 + startY * 2) * wakeFactor * 0.2;
+                // Nose deflection
+                if (z > 2.8 && z < 3.8) {
+                    if (Math.abs(currentX) < 0.3 && currentY > 0.1 && currentY < 0.6) {
+                        const deflect = 0.012 * (1 - Math.abs(currentX) / 0.3);
+                        velocityX += (currentX >= 0 ? deflect : -deflect);
+                    }
                 }
                 
-                points.push(new THREE.Vector3(x, y, z));
+                // Underbody acceleration (ground effect)
+                if (z > -2.5 && z < 2.5 && currentY < 0.25 && Math.abs(currentX) < 0.65) {
+                    velocityY -= 0.002;
+                }
+                
+                // Diffuser expansion
+                if (z < -2.0 && z > -3.5 && currentY < 0.6) {
+                    const progress = (-z - 2.0) / 1.5;
+                    velocityY += 0.012 * progress;
+                    velocityX += (currentX > 0 ? 0.004 : -0.004) * progress;
+                }
+                
+                // Rear wing upwash
+                if (z < -2.5 && z > -4.0 && currentY > 0.4 && currentY < 1.2) {
+                    velocityY += 0.015;
+                }
+                
+                // Wake turbulence
+                if (z < -4.0) {
+                    const wake = Math.min(1, (-z - 4.0) / 3);
+                    velocityX += Math.sin(t * 25 + startX * 5) * 0.018 * wake;
+                    velocityY += Math.cos(t * 22 + startY * 4) * 0.012 * wake;
+                }
+                
+                // Apply velocities
+                currentX += velocityX;
+                currentY += velocityY;
+                
+                // Damping
+                velocityX *= 0.88;
+                velocityY *= 0.88;
+                
+                // === STEP 2: Hard collision enforcement ===
+                
+                // Wheel collision - cylindrical avoidance
+                for (const wheel of wheels) {
+                    const dx = currentX - wheel.x;
+                    const dz = z - wheel.z;
+                    const distXZ = Math.sqrt(dx * dx + dz * dz);
+                    const effectiveRadius = wheel.radius + clearance;
+                    
+                    if (distXZ < effectiveRadius && currentY < 0.6) {
+                        // Push outward radially
+                        const pushDist = effectiveRadius - distXZ + 0.02;
+                        const angle = Math.atan2(dz, dx);
+                        currentX += Math.cos(angle) * pushDist;
+                        
+                        // Also push up if near top of wheel
+                        if (currentY > 0.2 && distXZ < effectiveRadius * 0.8) {
+                            currentY += pushDist * 0.3;
+                        }
+                    }
+                }
+                
+                // Car body collision - enforce minimum distance
+                const maxAllowedX = getCarMaxX(z, currentY);
+                const maxAllowedY = getCarMaxY(z, currentX);
+                
+                // Push out if inside body
+                if (Math.abs(currentX) < maxAllowedX && currentY < maxAllowedY && currentY > clearance) {
+                    // Decide: push sideways or upward based on position
+                    const distToSide = maxAllowedX - Math.abs(currentX);
+                    const distToTop = maxAllowedY - currentY;
+                    
+                    if (distToSide < distToTop) {
+                        // Push sideways
+                        currentX = (currentX >= 0 ? maxAllowedX : -maxAllowedX) + 0.02;
+                    } else {
+                        // Push up
+                        currentY = maxAllowedY + 0.02;
+                    }
+                }
+                
+                // Ensure Y is within bounds
+                currentY = Math.max(0.08, Math.min(2.2, currentY));
+                
+                points.push(new THREE.Vector3(currentX, currentY, z));
             }
             
             const curve = new THREE.CatmullRomCurve3(points);
-            const geometry = new THREE.BufferGeometry().setFromPoints(curve.getPoints(100));
+            const geometry = new THREE.BufferGeometry().setFromPoints(curve.getPoints(150));
             const material = new THREE.LineBasicMaterial({ 
                 color: color,
                 transparent: true,
-                opacity: 0.35
+                opacity: 0.06
             });
-            return new THREE.Line(geometry, material);
+            const line = new THREE.Line(geometry, material);
+            
+            return { line, curve, color };
         }
         
         const streamlines = [];
+        const flowDashes = [];
         
-        // Main flow lines
-        const xPositions = [-2.5, -2, -1.5, -1, -0.5, 0.5, 1, 1.5, 2, 2.5];
-        const yPositions = [0.3, 0.6, 1, 1.5];
+        // Side streamlines - extremely tight to car body
+        const xPositions = [-0.67, -0.65, 0.65, 0.67];
+        const yPositions = [0.02, 0.06, 0.12, 0.22, 0.35];
         
-        yPositions.forEach(y => {
-            xPositions.forEach(x => {
-                const color = Math.abs(x) < 1 && y < 1 ? 0x00a3e0 : 0xffffff;
-                const line = createAeroStreamline(x, y, color);
-                streamlines.push(line);
-                scene.add(line);
+        xPositions.forEach(x => {
+            yPositions.forEach(y => {
+                const color = Math.abs(x) < 0.66 && y < 0.3 ? 0x00a3e0 : 0xffffff;
+                const streamline = createAeroStreamline(x, y, color);
+                streamlines.push(streamline);
+                scene.add(streamline.line);
+                
+                for (let p = 0; p < 20; p++) {
+                    const dashGeometry = new THREE.BufferGeometry();
+                    const dashMaterial = new THREE.LineBasicMaterial({ 
+                        color: color,
+                        transparent: true,
+                        opacity: 0.7
+                    });
+                    
+                    const dash = new THREE.Line(dashGeometry, dashMaterial);
+                    
+                    flowDashes.push({
+                        mesh: dash,
+                        curve: streamline.curve,
+                        t: p / 20,
+                        speed: 0.006 + Math.random() * 0.002,
+                        length: 0.01 + Math.random() * 0.006
+                    });
+                    
+                    scene.add(dash);
+                }
+            });
+        });
+        
+        // Central streamlines - flow over the top of the car
+        const centerXPositions = [-0.25, -0.12, 0, 0.12, 0.25];
+        const centerYPositions = [0.48, 0.6, 0.72, 0.85];
+        
+        centerXPositions.forEach(x => {
+            centerYPositions.forEach(y => {
+                const color = 0x00a3e0;
+                const streamline = createAeroStreamline(x, y, color);
+                streamlines.push(streamline);
+                scene.add(streamline.line);
+                
+                for (let p = 0; p < 18; p++) {
+                    const dashGeometry = new THREE.BufferGeometry();
+                    const dashMaterial = new THREE.LineBasicMaterial({ 
+                        color: color,
+                        transparent: true,
+                        opacity: 0.65
+                    });
+                    
+                    const dash = new THREE.Line(dashGeometry, dashMaterial);
+                    
+                    flowDashes.push({
+                        mesh: dash,
+                        curve: streamline.curve,
+                        t: p / 18,
+                        speed: 0.005 + Math.random() * 0.002,
+                        length: 0.01 + Math.random() * 0.005
+                    });
+                    
+                    scene.add(dash);
+                }
             });
         });
         
@@ -1950,17 +2196,14 @@
                     child.castShadow = true;
                     child.receiveShadow = true;
                     
-                    // Store mesh for raycasting
                     clickableMeshes.push(child);
                     
-                    // Only modify body materials, keep everything else as is
                     if (child.material) {
                         const mat = child.material;
                         const meshName = child.name.toLowerCase();
                         const isWheel = meshName.includes('wheel') || meshName.includes('tire') || meshName.includes('tyre') || meshName.includes('rim') || meshName.includes('rubber');
                         
                         if (!isWheel && (mat.isMeshStandardMaterial || mat.isMeshPhysicalMaterial)) {
-                            // Make only body panels matte
                             mat.metalness = 0;
                             mat.roughness = 1;
                             mat.clearcoat = 0;
@@ -1968,7 +2211,6 @@
                             mat.needsUpdate = true;
                         }
                         
-                        // Fix double-sided materials for wheels
                         if (isWheel && mat.isMeshStandardMaterial) {
                             mat.side = THREE.DoubleSide;
                         }
@@ -1995,15 +2237,69 @@
         });
         
         let time = 0;
+        let wheelMeshes = [];
         
         function animate() {
             requestAnimationFrame(animate);
             time += 0.016;
             
-            // Animate streamlines opacity
-            streamlines.forEach((line, i) => {
-                line.material.opacity = 0.25 + Math.sin(time * 1.5 + i * 0.3) * 0.1;
+            // Animate flow dashes along curves following the flow direction
+            flowDashes.forEach(dash => {
+                // Move dash along curve
+                dash.t += dash.speed;
+                
+                // Reset when reaches end
+                if (dash.t > 1) {
+                    dash.t = 0;
+                }
+                
+                // Get position on curve
+                const t1 = Math.max(0, dash.t);
+                const pos = dash.curve.getPoint(t1);
+                
+                // Get tangent at current position (flow direction)
+                const tangent = dash.curve.getTangentAt(t1);
+                
+                // Create dash aligned with flow direction
+                const dashLength = dash.length;
+                const halfLength = dashLength * 0.5;
+                
+                // Position dash centered at current point, aligned with tangent
+                const startPos = new THREE.Vector3(
+                    pos.x - tangent.x * halfLength,
+                    pos.y - tangent.y * halfLength,
+                    pos.z - tangent.z * halfLength
+                );
+                
+                const endPos = new THREE.Vector3(
+                    pos.x + tangent.x * halfLength,
+                    pos.y + tangent.y * halfLength,
+                    pos.z + tangent.z * halfLength
+                );
+                
+                // Update dash geometry
+                const positions = new Float32Array([
+                    startPos.x, startPos.y, startPos.z,
+                    endPos.x, endPos.y, endPos.z
+                ]);
+                dash.mesh.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                dash.mesh.geometry.attributes.position.needsUpdate = true;
+                
+                // Pulse opacity
+                dash.mesh.material.opacity = 0.6 + Math.sin(time * 3 + dash.t * 6) * 0.3;
             });
+            
+            // Subtle streamline opacity
+            streamlines.forEach((s, i) => {
+                s.line.material.opacity = 0.1 + Math.sin(time * 1.5 + i * 0.3) * 0.03;
+            });
+            
+            // Rotate wheels
+            if (wheelMeshes.length > 0) {
+                wheelMeshes.forEach(wheel => {
+                    wheel.rotation.x += 0.03;
+                });
+            }
             
             // Subtle spotlight breathing effect
             spotlights.forEach((s, i) => {
@@ -2016,6 +2312,21 @@
         }
         
         animate();
+        
+        // Find wheel meshes after model loads
+        setTimeout(() => {
+            if (carModel) {
+                carModel.traverse(function(child) {
+                    if (child.isMesh) {
+                        const name = child.name.toLowerCase();
+                        if (name.includes('wheel') || name.includes('tire') || name.includes('tyre') || name.includes('rim')) {
+                            wheelMeshes.push(child);
+                            console.log('Found wheel:', child.name);
+                        }
+                    }
+                });
+            }
+        }, 2000);
         
         window.addEventListener('resize', () => {
             camera.aspect = container.clientWidth / container.clientHeight;
