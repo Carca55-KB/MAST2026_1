@@ -2196,7 +2196,7 @@
             const model = gltf.scene;
             carModel = model;
             
-            console.log('=== Searching for wheels ===');
+            console.log('Model loaded');
             
             model.traverse(function(child) {
                 if (child.isMesh) {
@@ -2204,25 +2204,6 @@
                     child.receiveShadow = true;
                     clickableMeshes.push(child);
                     
-                    // Get bounding box
-                    const bbox = new THREE.Box3().setFromObject(child);
-                    const bsize = new THREE.Vector3();
-                    bbox.getSize(bsize);
-                    const bcenter = new THREE.Vector3();
-                    bbox.getCenter(bcenter);
-                    
-                    // Wheels are at the 4 corners: x ≈ ±0.7-0.9, z ≈ ±1.5-2.0
-                    const cornerX = Math.abs(bcenter.x) > 0.6;
-                    const frontZ = bcenter.z > 1.3;
-                    const rearZ = bcenter.z < -1.3;
-                    
-                    // Add all meshes at wheel positions (wheels, brakes, etc.)
-                    if (cornerX && (frontZ || rearZ)) {
-                        wheelMeshes.push(child);
-                        console.log('Wheel part:', child.name, 'center:', bcenter);
-                    }
-                    
-                    // Apply materials
                     if (child.material) {
                         const mat = child.material;
                         if (mat.isMeshStandardMaterial || mat.isMeshPhysicalMaterial) {
@@ -2235,8 +2216,6 @@
                     }
                 }
             });
-            
-            console.log('Total wheel parts found:', wheelMeshes.length);
             
             const box = new THREE.Box3().setFromObject(model);
             const center = box.getCenter(new THREE.Vector3());
@@ -2257,7 +2236,6 @@
         });
         
         let time = 0;
-        let wheelMeshes = [];
         
         function animate() {
             requestAnimationFrame(animate);
@@ -2313,13 +2291,6 @@
             streamlines.forEach((s, i) => {
                 s.line.material.opacity = 0.1 + Math.sin(time * 1.5 + i * 0.3) * 0.03;
             });
-            
-            // Rotate wheels - disabled for now
-            // if (wheelMeshes.length > 0) {
-            //     wheelMeshes.forEach(wheel => {
-            //         wheel.rotation.x += 0.15;
-            //     });
-            // }
             
             // Subtle spotlight breathing effect
             spotlights.forEach((s, i) => {
