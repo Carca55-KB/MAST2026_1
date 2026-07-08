@@ -17,26 +17,46 @@ pool.connect()
     .then(() => console.log('Connected to PostgreSQL'))
     .catch(err => console.error('Database connection error:', err));
 
-pool.query(`
-    CREATE TABLE IF NOT EXISTS visitors (
-        id SERIAL PRIMARY KEY,
-        ip VARCHAR(45),
-        visited_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-`).catch(err => console.error('Table creation error:', err));
-
 app.get('/', (req, res) => {
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    pool.query('INSERT INTO visitors (ip) VALUES ($1)', [ip]).catch(() => {});
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.get('/api/stats', async (req, res) => {
+app.get('/api/setup', async (req, res) => {
     try {
-        const result = await pool.query('SELECT COUNT(*) as visits FROM visitors');
-        res.json({ visits: result.rows[0].visits });
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS f1_drivers (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(100),
+                team VARCHAR(100),
+                number INTEGER,
+                country VARCHAR(50)
+            )
+        `);
+        
+        const checkData = await pool.query('SELECT COUNT(*) FROM f1_drivers');
+        if (checkData.rows[0].count === '0') {
+            await pool.query(`
+                INSERT INTO f1_drivers (name, team, number, country) VALUES
+                ('Charles Leclerc', 'Ferrari', 16, 'Monaco'),
+                ('Carlos Sainz', 'Ferrari', 55, 'Spain'),
+                ('Max Verstappen', 'Red Bull', 1, 'Netherlands'),
+                ('Lewis Hamilton', 'Mercedes', 44, 'United Kingdom'),
+                ('Lando Norris', 'McLaren', 4, 'United Kingdom')
+            `);
+        }
+        
+        res.json({ message: 'Tabella creata e popolata con dati finti!' });
     } catch (err) {
-        res.json({ visits: 0 });
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/drivers', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM f1_drivers');
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
